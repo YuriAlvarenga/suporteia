@@ -54,6 +54,7 @@ export default function SignIn() {
 
 
     //Função para enviar dados para o backend e chamar a função de validação do formulário do front
+
     async function handleSubmit(event) {
         event.preventDefault()
         if (!frontendValidation()) return
@@ -64,7 +65,6 @@ export default function SignIn() {
                 navigate('/')
             })
             .catch(() => { })
-
     }
 
     return (
@@ -77,7 +77,7 @@ export default function SignIn() {
                     </Box>
                 </Grid>
 
-                <Grid item xs={6} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '50%'}}>
+                <Grid item xs={6} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '50%' }}>
                     <Box sx={{ position: 'absolute', bottom: 15 }} >
                         {error && (
                             <Alert severity="error">
@@ -138,7 +138,7 @@ export default function SignIn() {
                                     <CircularProgress size={20} sx={{ ml: 2, color: '#FFFFFF' }} />
                                 </Button>
                             ) : (
-                                <Button type="submit" variant="contained" disabled={(isDisabled)} color="primary" sx={{ fontSize: '0.8rem', cursor:'pointer', background: isDisabled ? 'blue' : 'linear-gradient(to right, rgba(255, 5, 5, 0.5) 20%, rgba(79, 75, 75, 0.5) 100%)' }}>
+                                <Button type="submit" variant="contained" disabled={(isDisabled)} color="primary" sx={{ fontSize: '0.8rem', cursor: 'pointer', background: isDisabled ? 'blue' : 'linear-gradient(to right, rgba(255, 5, 5, 0.5) 20%, rgba(79, 75, 75, 0.5) 100%)' }}>
                                     Entrar
                                 </Button>
                             )}

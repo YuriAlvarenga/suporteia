@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { Box, Avatar, Menu, MenuItem, ListItemIcon, Divider, IconButton, Tooltip } from '@mui/material'
 import { PersonAdd, Settings, Logout } from '@mui/icons-material'
+import { useDispatch, useSelector } from 'react-redux'
 import { logoutUser } from '../../../redux/slice/auth/auth-login-slice'
-import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
 
@@ -22,6 +22,12 @@ export default function TopBarLogout() {
         setAnchorEl(null)
     }
 
+    // Função para navegar até a tela de criação de usuários
+    const handleAddAccount = () => {
+        handleClose()
+        navigate('/sign-up')
+    }
+
     //Função para deslogar o usuário
     const handleLogout = async () => {
         try {
@@ -32,6 +38,8 @@ export default function TopBarLogout() {
             console.error('Erro ao deslogar:', err)
         }
     }
+
+
 
     return (
         <React.Fragment>
@@ -81,29 +89,26 @@ export default function TopBarLogout() {
                 anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
                 <MenuItem onClick={handleClose}>
-                    <Avatar /> Profile
-                </MenuItem>
-                <MenuItem onClick={handleClose}>
-                    <Avatar /> My account
+                    <Avatar /> Perfil
                 </MenuItem>
                 <Divider />
-                <MenuItem onClick={handleClose}>
+                <MenuItem onClick={handleAddAccount}>
                     <ListItemIcon>
                         <PersonAdd fontSize="small" />
                     </ListItemIcon>
-                    Add another account
+                    Adicionar Usuário
                 </MenuItem>
                 <MenuItem onClick={handleClose}>
                     <ListItemIcon>
                         <Settings fontSize="small" />
                     </ListItemIcon>
-                    Settings
+                    Configurações
                 </MenuItem>
                 <MenuItem onClick={handleLogout}>
                     <ListItemIcon>
                         <Logout fontSize="small" />
                     </ListItemIcon>
-                    Logout
+                    Sair
                 </MenuItem>
             </Menu>
         </React.Fragment>

@@ -1,30 +1,42 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import Box from '@mui/material/Box'
 import TopBar from '../components/menus/top-bar/top-bar'
 import SideBar from '../components/menus/side-bar/side-bar'
 import { Outlet } from 'react-router-dom'
-import OpenManualTicket from '../components/open-manual-ticket/open-manual-ticket'
-
+import { useLocation } from 'react-router-dom'
 import customTheme from '../theme/theme'
 import TopBarTicket from '../components/menus/top-bar/top-bar-tickets'
 
 
 export default function Home() {
 
-  //criarChamadoManutal (newTicket)
+  const [tabValue, setTabValue] = React.useState(0)
+  const [counts, setCounts] = React.useState({ pending: 0, finished: 0 })
+
+  //Barra de pesquisa
+  const [searchTerm, setSearchTerm] = useState("")
+
+  //criar novo grupo de empresa (newCompanyGroup)
+  const [newCompanyGroup, setValueNewCompanyGroup] = useState(false)
+  const handleClickNewGroup = () => {
+    setValueNewCompanyGroup(!newCompanyGroup)
+  }
+
+  //criarChamadoManual (newTicket)
   const [newTicket, setValueNewTicket] = useState(false)
   const handleClick = () => {
     setValueNewTicket(!newTicket)
   }
 
+  const location = useLocation()
   const [showTopBarTicket, setShowTopBarTicket] = useState(false)
-   const handleItemSelect = (childName) => {
-    // verifica se o item clicado pertence à categoria "Chamados"
-    const chamadosItems = ['Bobs','Giraffas','Trigo','Mania de Churrasco','American Burger','Juicestreet']
-    setShowTopBarTicket(chamadosItems.includes(childName))
-  }
+
+  useEffect(() => {
+    setShowTopBarTicket(location.pathname.startsWith('/tickets'))
+  }, [location.pathname])
+
 
   return (
     <ThemeProvider theme={customTheme}>
@@ -32,15 +44,14 @@ export default function Home() {
         <CssBaseline />
 
         <Box component="nav" sx={{ width: { sm: 200 }, flexShrink: { sm: 0 } }}>
-          <SideBar sx={{ display: { sm: 'block', xs: 'none' } }} newTicket={newTicket} handleClick={handleClick} onItemSelect={handleItemSelect} />
+          <SideBar sx={{ display: { sm: 'block', xs: 'none' } }} handleClickNewGroup={handleClickNewGroup} />
         </Box>
 
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <TopBar />
-          {showTopBarTicket && <TopBarTicket />} {/* renderiza condicionalmente */}
+          {showTopBarTicket && <TopBarTicket handleClick={handleClick} onSearch={(val) => setSearchTerm(val)} tabValue={tabValue} setTabValue={setTabValue} countPending={counts.pending} countFinished={counts.finished} />} {/* renderiza condicionalmente */}
           <Box sx={{ p: 2, flexGrow: 1, overflow: 'auto' }}>
-            <Outlet /> {/* Renderiza o conteúdo das rotas filhas */}
-            {newTicket && <OpenManualTicket open={newTicket} onClose={handleClick} />}
+            <Outlet context={{ tabValue, setCounts, searchTerm }} /> {/* Renderiza o conteúdo das rotas filhas */}
           </Box>
         </Box>
 
