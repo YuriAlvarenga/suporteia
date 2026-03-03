@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Table, TableBody, TableCell, TableHead, TableRow, Button, Paper, Typography, IconButton, Drawer, Box, Divider, Stack, Skeleton } from '@mui/material'
+import { Table, TableBody, TableCell, TableHead, TableRow, Button, Paper, Typography, IconButton, Drawer, Box, Divider, Stack, Skeleton, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, RadioGroup, FormControlLabel, Radio, DialogContentText } from '@mui/material'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import CloseIcon from '@mui/icons-material/Close'
 import { fetchTickets, updateTicketStatus } from '../../redux/slice/ticket-slice/ticket-slice'
@@ -13,7 +13,6 @@ const normalizeName = (name) => {
     return name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "").trim()
 }
 
-// Função para Capitalizar o nome da loja
 const capitalizeName = (name) => {
     if (!name) return ''
     return name.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
@@ -28,6 +27,11 @@ export default function Tickets() {
 
     const [openDrawer, setOpenDrawer] = useState(false)
     const [selectedTicket, setSelectedTicket] = useState(null)
+
+    // ✅ NOVOS STATES
+    const [openClassificationModal, setOpenClassificationModal] = useState(false)
+    const [classification, setClassification] = useState('')
+    const [ticketToClose, setTicketToClose] = useState(null)
 
     useEffect(() => {
         dispatch(fetchTickets())
@@ -82,14 +86,32 @@ export default function Tickets() {
         setOpenDrawer(true)
     }
 
-    const handleCloseTicket = async (idDoTicket) => {
+    // ✅ ALTERADO: agora abre o modal
+    const handleCloseTicket = (idDoTicket) => {
+        setTicketToClose(idDoTicket)
+        setOpenClassificationModal(true)
+    }
+
+    // ✅ NOVA FUNÇÃO PARA CONFIRMAR ENCERRAMENTO
+    const handleConfirmCloseTicket = async () => {
+        if (!classification) {
+            alert('Selecione uma justificativa antes de continuar.')
+            return
+        }
+
         try {
             await dispatch(updateTicketStatus({
-                id: idDoTicket,
-                status: 'Finalizado'
+                id: ticketToClose,
+                status: 'Finalizado',
+                classificacao: classification
             })).unwrap()
+
+            setOpenClassificationModal(false)
             setOpenDrawer(false)
             setSelectedTicket(null)
+            setClassification('')
+            setTicketToClose(null)
+
         } catch (error) {
             console.error("Erro ao encerrar ticket:", error)
             alert("Erro ao encerrar no banco 'chamados'. Verifique o console.")
@@ -116,9 +138,9 @@ export default function Tickets() {
             : selectedTicket.totem?.replace(/[\[\]"]/g, '')
 
         const textToCopy = `*NOME FANTASIA:* ${capitalizeName(selectedTicket.cliente)}
-        *CNPJ:* ${selectedTicket.cnpj}
-        *TOTEM:* ${totemFormatado}
-        *MOTIVO:* ${selectedTicket.mensagem || 'Não informado'}`
+*CNPJ:* ${selectedTicket.cnpj}
+*TOTEM:* ${totemFormatado}
+*MOTIVO:* ${selectedTicket.mensagem || 'Não informado'}`
 
         navigator.clipboard.writeText(textToCopy).then(() => {
             alert("Dados copiados com sucesso!")
@@ -126,7 +148,6 @@ export default function Tickets() {
             console.error('Erro ao copiar:', err)
         })
     }
-
 
     return (
         <React.Fragment>
@@ -160,10 +181,10 @@ export default function Tickets() {
                                 return (
                                     <TableRow
                                         key={ticket.id}
-                                        hover // Ativa o efeito hover nativo do MUI
+                                        hover
                                         sx={{
                                             bgcolor: index % 2 === 0 ? '#f9f9f9' : '#fff',
-                                            '&:hover': { backgroundColor: '#f1f1f1 !important' } // Cor sutil personalizada no hover
+                                            '&:hover': { backgroundColor: '#f1f1f1 !important' }
                                         }}
                                     >
                                         <TableCell sx={{ fontSize: '0.8rem', border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>{date}</TableCell>
@@ -203,44 +224,51 @@ export default function Tickets() {
                             size="small"
                             sx={{
                                 position: 'absolute',
-                                top: -20, // Ajusta a altura para ficar "mais acima"
-                                right: -18, // Ajusta para o canto
+                                top: -20,
+                                right: -18,
                                 '&:hover': { color: '#fb0b0b' }
                             }}
                         >  
-                                <CloseIcon/>
-                            </IconButton>
+                            <CloseIcon/>
+                        </IconButton>
+
                         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
                             <Typography variant="h6" fontWeight="bold" color="primary">
                                 Detalhes do Ticket #{selectedTicket.ticket}
                             </Typography>
-                         
                         </Stack>
+
                         <Divider />
+
                         <Stack spacing={1} sx={{ flexGrow: 1, overflowY: 'auto' }}>
                             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                                 <IconButton color="primary" onClick={handleCopyTicketData} title="Copiar dados">
                                     <ContentCopyIcon fontSize="small" />
                                 </IconButton>
                             </Box>
+
                             <Box>
                                 <Typography variant="caption" color="#000000" fontWeight="bold">NOME FANTASIA</Typography>
-                                <Typography variant="body1" color='text.secondary' >{capitalizeName(selectedTicket.cliente)}</Typography>
+                                <Typography variant="body1" color='text.secondary'>{capitalizeName(selectedTicket.cliente)}</Typography>
                             </Box>
+
                             <Box>
                                 <Typography variant="caption" color="#000000" fontWeight="bold">CNPJ</Typography>
                                 <Typography variant="body1" color='text.secondary'>{selectedTicket.cnpj}</Typography>
                             </Box>
+
                             <Box>
                                 <Typography variant="caption" color="#000000" fontWeight="bold">TOTEM</Typography>
                                 <Typography variant="body1" color='text.secondary'>
                                     {Array.isArray(selectedTicket.totem) ? selectedTicket.totem.join(', ') : selectedTicket.totem?.replace(/[\[\]"]/g, '')}
                                 </Typography>
                             </Box>
+
                             <Box>
                                 <Typography variant="caption" color="#000000" fontWeight="bold">MOTIVO</Typography>
                                 <Typography variant="body1" color='text.secondary'>{selectedTicket.mensagem || 'Não informado'}</Typography>
                             </Box>
+
                             {tabValue === 1 && (
                                 <Box>
                                     <Typography variant="caption" color="#000000" fontWeight="bold">RESUMO</Typography>
@@ -249,11 +277,17 @@ export default function Tickets() {
                                     </Typography>
                                 </Box>
                             )}
-
                         </Stack>
+
                         {tabValue === 0 && (
                             <Box sx={{ mt: 'auto' }}>
-                                <Button variant="contained" fullWidth color="error" onClick={() => handleCloseTicket(selectedTicket.id)} sx={{ textTransform: 'none' }} >
+                                <Button
+                                    variant="contained"
+                                    fullWidth
+                                    color="error"
+                                    onClick={() => handleCloseTicket(selectedTicket.id)}
+                                    sx={{ textTransform: 'none' }}
+                                >
                                     Encerrar Ticket
                                 </Button>
                             </Box>
@@ -261,6 +295,50 @@ export default function Tickets() {
                     </Box>
                 )}
             </Drawer>
+
+            {/* ✅ MODAL DE CLASSIFICAÇÃO */}
+            <Dialog
+                open={openClassificationModal}
+                onClose={() => setOpenClassificationModal(false)}
+            >
+                <DialogTitle>Classificar Chamado</DialogTitle>
+
+                <DialogContent>
+                    <DialogContentText sx={{ mb: 2 }}>
+                        Selecione a justificativa para encerrar o chamado:
+                    </DialogContentText>
+
+                    <FormControl>
+                        <RadioGroup
+                            value={classification}
+                            onChange={(e) => setClassification(e.target.value)}
+                        >
+                            <FormControlLabel value="Falha de Internet" control={<Radio />} label="Falha de Internet" />
+                            <FormControlLabel value="Falha de Pagamento" control={<Radio />} label="Falha de Pagamento" />
+                            <FormControlLabel value="Hardware" control={<Radio />} label="Hardware" />
+                            <FormControlLabel value="Ajuste de Cardápio" control={<Radio />} label="Ajuste de Cardápio" />
+                        </RadioGroup>
+                    </FormControl>
+                </DialogContent>
+
+                <DialogActions>
+                    <Button
+                        onClick={() => setOpenClassificationModal(false)}
+                        color="inherit"
+                    >
+                        Cancelar
+                    </Button>
+
+                    <Button
+                        onClick={handleConfirmCloseTicket}
+                        variant="contained"
+                        color="primary"
+                    >
+                        Encerrar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
         </React.Fragment>
     )
 }
