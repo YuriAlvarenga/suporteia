@@ -121,7 +121,6 @@ export default function SideBar() {
                             <ListItem disablePadding key={company.id}>
                                 <ListItemButton selected={isSelected} onClick={() => handleClick(companyPath)}>
                                     
-                                    {/* AVATAR ESTILO WHATSAPP */}
                                     <ListItemIcon sx={{ minWidth: 40 }}>
                                         <Avatar
                                             sx={{
@@ -129,7 +128,7 @@ export default function SideBar() {
                                                 height: 32,
                                                 fontSize: 14,
                                                 bgcolor: '#d9d9d9' ,
-                                                color: isSelected ? '#fff' : '#333'
+                                                color: isSelected ? '#7b1616' : '#333'
                                             }}
                                         >
                                             {company.name.charAt(0).toUpperCase()}
@@ -147,7 +146,7 @@ export default function SideBar() {
                                             sx={{ 
                                                 '& .MuiBadge-badge': { 
                                                     backgroundColor: '#ffffff',
-                                                    color: 'red',
+                                                    color: '#7b1616',
                                                     fontWeight: 'bold',
                                                     fontSize: '0.65rem',
                                                     height: 18,

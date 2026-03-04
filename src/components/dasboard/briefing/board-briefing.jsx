@@ -70,10 +70,10 @@ export default function BoardBriefing() {
     }
 
     return (
-        <Box sx={{ p: 2 }}>
+        <Box sx={{ p: 0 }}>
             
             {/* CABEÇALHO */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'var(--color-dark)' }}>
                     Briefing
                 </Typography>

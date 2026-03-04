@@ -71,9 +71,9 @@ export default function SignIn() {
         <React.Fragment>
 
             <Grid container sx={{ height: '100vh', margin: 0, padding: 0 }}>
-                <Grid item xs={6} sx={{ background: 'rgba(255, 5, 5, 0.96)', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '50%' }}>
+                <Grid item xs={6} sx={{ background: '#7b1616', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '50%' }}>
                     <Box>
-                        <Typography sx={{ color: 'white', margin: 0, padding: 0 }}>Support Large Accounts -  iFood</Typography>
+                        <Typography sx={{ color: 'white', margin: 0, padding: 0, fontWeight: 'bold' }}>Support Large Accounts -  iFood</Typography>
                     </Box>
                 </Grid>
 

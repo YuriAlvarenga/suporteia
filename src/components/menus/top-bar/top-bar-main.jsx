@@ -1,10 +1,9 @@
 import * as React from 'react'
-import { Box, Avatar, Menu, MenuItem, ListItemIcon, Divider, IconButton, Tooltip } from '@mui/material'
+import { Box, Avatar, Menu, MenuItem, ListItemIcon, Divider, IconButton, Tooltip, Typography } from '@mui/material'
 import { PersonAdd, Settings, Logout } from '@mui/icons-material'
 import { useDispatch, useSelector } from 'react-redux'
 import { logoutUser } from '../../../redux/slice/auth/auth-login-slice'
 import { useNavigate } from 'react-router-dom'
-
 
 export default function TopBarLogout() {
     const [anchorEl, setAnchorEl] = React.useState(null)
@@ -13,40 +12,56 @@ export default function TopBarLogout() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
 
+    // Buscando os dados do usuário logado no Redux
+    const { user } = useSelector((state) => state.auth || {})
+
+    // Lógica para pegar a inicial do nome
+    const getUserInitial = () => {
+        if (user?.fullName) {
+            return user.fullName.charAt(0).toUpperCase()
+        }
+        return 'U' // Fallback caso o nome não exista
+    }
+
     const handleClick = (event) => {
         setAnchorEl(event.currentTarget)
     }
 
-    //fechar menu
     const handleClose = () => {
         setAnchorEl(null)
     }
 
-    // Função para navegar até a tela de criação de usuários
     const handleAddAccount = () => {
         handleClose()
         navigate('/sign-up')
     }
 
-    //Função para deslogar o usuário
     const handleLogout = async () => {
         try {
-            await dispatch(logoutUser()).unwrap() // dispara o thunk de logout
+            await dispatch(logoutUser()).unwrap()
             localStorage.removeItem('activeMenuItem') 
-            navigate('/sign-in') // redireciona para página de login após logout
+            navigate('/sign-in')
         } catch (err) {
             console.error('Erro ao deslogar:', err)
         }
     }
 
-
-
     return (
         <React.Fragment>
             <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
-                <Tooltip title="Account settings">
-                    <IconButton onClick={handleClick} size="small" sx={{ ml: 2 }} aria-controls={open ? 'account-menu' : undefined} aria-haspopup="true" aria-expanded={open ? 'true' : undefined}>
-                        <Avatar sx={{ width: 32, height: 32 }}>M</Avatar>
+                <Tooltip title="Configurações de Conta">
+                    <IconButton 
+                        onClick={handleClick} 
+                        size="small" 
+                        sx={{ ml: 2 }} 
+                        aria-controls={open ? 'account-menu' : undefined} 
+                        aria-haspopup="true" 
+                        aria-expanded={open ? 'true' : undefined}
+                    >
+                        {/* AQUI: Renderizando a inicial dinâmica */}
+                        <Avatar sx={{ width: 32, height: 32, color: 'var(--color-highlight)', bgcolor: 'var(--color-background)' }}>
+                            {getUserInitial()}
+                        </Avatar>
                     </IconButton>
                 </Tooltip>
             </Box>
@@ -89,7 +104,15 @@ export default function TopBarLogout() {
                 anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
                 <MenuItem onClick={handleClose}>
-                    <Avatar /> Perfil
+                    <Avatar sx={{ bgcolor: 'var(--color-highlight)' }}>{getUserInitial()}</Avatar> 
+                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                            {user?.fullName || 'Usuário'}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                            {user?.role === 'admin' ? 'Administrador' : 'Analista'}
+                        </Typography>
+                    </Box>
                 </MenuItem>
                 <Divider />
                 <MenuItem onClick={handleAddAccount}>
@@ -106,9 +129,9 @@ export default function TopBarLogout() {
                 </MenuItem>
                 <MenuItem onClick={handleLogout}>
                     <ListItemIcon>
-                        <Logout fontSize="small" />
+                        <Logout fontSize="small" color="var(--color-highlight)" />
                     </ListItemIcon>
-                    Sair
+                    <Typography color="error">Sair</Typography>
                 </MenuItem>
             </Menu>
         </React.Fragment>

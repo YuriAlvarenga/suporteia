@@ -5,14 +5,12 @@ import { supabase } from "../../../services/supabase"
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async ({ email, password }, { rejectWithValue }) => {
-    // 1. Autenticação no Supabase Auth
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) return rejectWithValue(error.message)
 
     const user = data.user
     if (!user) return rejectWithValue("Usuário não encontrado")
 
-    // 2. Busca o perfil na tabela 'profiles'
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('full_name, role, email')
@@ -57,7 +55,7 @@ export const loadUserFromSession = createAsyncThunk(
   }
 )
 
-// 🔑 Thunk para deslogar
+// 🔑 Thunk para deslogar 
 export const logoutUser = createAsyncThunk(
   'auth/logoutUser',
   async (_, { rejectWithValue }) => {
@@ -83,7 +81,6 @@ const authSlice = createSlice({
     clearError(state) {
       state.error = null
     },
-    // Action necessária para o AuthListener sincronizar a sessão
     setUser(state, action) {
       if (action.payload) {
         state.user = action.payload
@@ -134,7 +131,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false
       })
 
-      // LOGOUT
+      // LOGOUT (Ação após o sucesso do deslogue)
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null
         state.role = null
@@ -144,6 +141,5 @@ const authSlice = createSlice({
   }
 })
 
-// Exportando as actions agora com o setUser incluído
 export const { clearError, setUser } = authSlice.actions
 export default authSlice.reducer

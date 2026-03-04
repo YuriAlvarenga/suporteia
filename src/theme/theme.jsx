@@ -16,7 +16,7 @@ theme = {
     MuiCssBaseline: {
       styleOverrides: {
         ':root': {
-          '--color-highlight': 'rgba(255, 5, 5, 0.96)',        // Vermelho Destaque
+          '--color-highlight': '#7b1616',        // Vermelho Destaque
           '--color-background': '#ffffffff',                     // Fundo Sidebar/TopBar
           '--color-text-inactive': 'rgba(18, 18, 18, 0.43)',   // Texto Inativo
           '--color-white': 'rgba(255, 255, 255, 1)',           // Branco Puro
@@ -52,12 +52,12 @@ theme = {
             backgroundColor: 'var(--color-highlight)',
             color: 'var(--color-white)',
             '&:hover': {
-              backgroundColor: 'rgba(247,18,18,0.69)',
+              backgroundColor: '#7b1616',
             },
           },
 
           '&:hover': {
-            backgroundColor: 'rgba(247,18,18,0.69)',
+            backgroundColor: '#7b1616',
             color: 'var(--color-white)',
           },
         },

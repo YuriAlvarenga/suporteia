@@ -1,6 +1,6 @@
 import React from 'react'
 import { AppBar, Grid, Toolbar, Typography } from '@mui/material'
-import TopBarLogout from './top-bar-logout'
+import TopBarLogout from './top-bar-main'
 
 
 
