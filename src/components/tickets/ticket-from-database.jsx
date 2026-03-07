@@ -168,7 +168,7 @@ export default function Tickets() {
                                         <TableCell sx={{ fontSize: '0.8rem', border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>{dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</TableCell>
                                         {tabValue === 1 && <TableCell sx={{ fontSize: '0.8rem', border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>{ticket.tempo}</TableCell>}
                                         <TableCell sx={{ fontSize: '0.8rem', border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>
-                                            <IconButton color="primary" onClick={() => handleViewDetails(ticket)}><VisibilityIcon fontSize="small" /></IconButton>
+                                            <IconButton color="#1976d2" onClick={() => handleViewDetails(ticket)}><VisibilityIcon fontSize="small" /></IconButton>
                                         </TableCell>
                                     </TableRow>
                                 )
