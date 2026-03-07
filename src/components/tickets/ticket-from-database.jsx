@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { 
-    Table, TableBody, TableCell, TableHead, TableRow, Button, Paper, 
-    Typography, IconButton, Drawer, Box, Divider, Stack, Skeleton, 
-    Dialog, DialogTitle, DialogContent, DialogActions, FormControl, 
-    RadioGroup, FormControlLabel, Radio, DialogContentText, Alert, Fade 
+import {
+    Table, TableBody, TableCell, TableHead, TableRow, Button, Paper,
+    Typography, IconButton, Drawer, Box, Divider, Stack, Skeleton,
+    Dialog, DialogTitle, DialogContent, DialogActions, FormControl,
+    RadioGroup, FormControlLabel, Radio, DialogContentText, Alert, Fade
 } from '@mui/material'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import CloseIcon from '@mui/icons-material/Close'
@@ -28,7 +28,7 @@ export default function Tickets() {
     const { companyId } = useParams()
     const { tickets, loading } = useSelector((state) => state.tickets)
     const { user } = useSelector((state) => state.auth)
-    
+
     const context = useOutletContext()
     const { tabValue, setCounts, searchTerm } = context || {}
 
@@ -37,7 +37,18 @@ export default function Tickets() {
     const [openClassificationModal, setOpenClassificationModal] = useState(false)
     const [classification, setClassification] = useState('')
     const [ticketToClose, setTicketToClose] = useState(null)
-    
+
+    const tags = [
+        "SW. Cardápio não reflete no totem", "SW. Pagamento sem ordem", "SW. Integração iFood",
+        "SW. Erro de pagamento", "SW. Instabilidade", "IN. Falha na internet",
+        "IN. Erro operacional", "IN. Erro integração", "DU. Dúvidas cardápio",
+        "DU. Dúvidas Financeiras", "DU. Dúvidas acesso", "DU. Status do totem",
+        "SOL. Aquisição totem", "SOL. Configurar totem", "SOL. Cancelamento",
+        "SOL. Ativação", "SOL. Alterações contratuais", "SOL. Solicitações financeiras",
+        "SOL. Alteração cardápio", "HW. hardware", "CRI. Incidente",
+        "OU. Outros", "Cri.Encerramento+24h", "SOL. Inadimplência"
+    ]
+
     // ✅ ESTADO PARA O AVISO DE CÓPIA
     const [copySuccess, setCopySuccess] = useState(false)
 
@@ -71,9 +82,9 @@ export default function Tickets() {
             const searchNormalized = normalizeName(searchTerm)
             const totemString = Array.isArray(t.totem) ? t.totem.join(' ') : (t.totem || '').toString()
             const matchSearch = normalizeName(t.ticket?.toString()).includes(searchNormalized) ||
-                                normalizeName(t.cliente).includes(searchNormalized) ||
-                                normalizeName(t.cnpj).includes(searchNormalized) ||
-                                normalizeName(totemString).includes(searchNormalized)
+                normalizeName(t.cliente).includes(searchNormalized) ||
+                normalizeName(t.cnpj).includes(searchNormalized) ||
+                normalizeName(totemString).includes(searchNormalized)
             return matchStatus && matchSearch
         })
     }, [ticketsDaEmpresa, tabValue, searchTerm])
@@ -81,7 +92,7 @@ export default function Tickets() {
     const handleViewDetails = (ticket) => {
         setSelectedTicket(ticket)
         setOpenDrawer(true)
-        setCopySuccess(false) // Garante que o aviso comece fechado
+        setCopySuccess(false)
     }
 
     const handleCloseTicket = (idDoTicket) => {
@@ -115,14 +126,12 @@ export default function Tickets() {
             : selectedTicket.totem?.replace(/[\[\]"]/g, '')
 
         const textToCopy = `*NOME FANTASIA:* ${capitalizeName(selectedTicket.cliente)}
-*CNPJ:* ${selectedTicket.cnpj}
-*TOTEM:* ${totemFormatado}
-*MOTIVO:* ${selectedTicket.mensagem || 'Não informado'}`
+            *CNPJ:* ${selectedTicket.cnpj}
+            *TOTEM:* ${totemFormatado}
+            *MOTIVO:* ${selectedTicket.mensagem || 'Não informado'}`
 
         navigator.clipboard.writeText(textToCopy).then(() => {
-            // ✅ ATIVA O AVISO SUTIL
             setCopySuccess(true)
-            // ✅ FAZ SUMIR APÓS 3 SEGUNDOS
             setTimeout(() => setCopySuccess(false), 3000)
         }).catch(err => {
             console.error('Erro ao copiar:', err)
@@ -133,7 +142,7 @@ export default function Tickets() {
         <React.Fragment>
             <Paper elevation={3} sx={{ padding: 2 }}>
                 <Table size="small" sx={{ tableLayout: 'fixed', width: '100%' }}>
-                    <TableHead sx={{ '& .MuiTableCell-root': {  border: '1px solid rgba(255,255,255,0.3)'}}}>
+                    <TableHead sx={{ '& .MuiTableCell-root': { border: '1px solid rgba(255,255,255,0.3)' } }}>
                         <TableRow sx={{ background: 'var(--color-highlight)' }}>
                             <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', textAlign: 'center', color: '#FFF', padding: '8px' }}>Data</TableCell>
                             <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', textAlign: 'center', color: '#FFF', padding: '8px' }}>Ticket</TableCell>
@@ -168,7 +177,7 @@ export default function Tickets() {
                                         <TableCell sx={{ fontSize: '0.8rem', border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>{dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</TableCell>
                                         {tabValue === 1 && <TableCell sx={{ fontSize: '0.8rem', border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>{ticket.tempo}</TableCell>}
                                         <TableCell sx={{ fontSize: '0.8rem', border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>
-                                            <IconButton color="#1976d2" onClick={() => handleViewDetails(ticket)}><VisibilityIcon fontSize="small" /></IconButton>
+                                            <IconButton sx={{ color: "#1976d2" }} onClick={() => handleViewDetails(ticket)}><VisibilityIcon fontSize="small" /></IconButton>
                                         </TableCell>
                                     </TableRow>
                                 )
@@ -185,27 +194,28 @@ export default function Tickets() {
                 PaperProps={{ sx: { width: 400, p: 3 } }}
             >
                 {selectedTicket && (
-                    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative'}}>
+                    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
                         <IconButton
                             onClick={() => setOpenDrawer(false)}
                             size="small"
                             sx={{ position: 'absolute', top: -20, right: -18, '&:hover': { color: '#fb0b0b' } }}
-                        >   
-                            <CloseIcon/>
+                        >
+                            <CloseIcon />
                         </IconButton>
 
-                        <Typography variant="h6" fontWeight="bold" color="primary" >
+                        <Typography fontWeight="bold" color="primary"sx={{ mb: 1, mt:2 }}  >
                             Detalhes do Ticket #{selectedTicket.ticket}
                         </Typography>
 
-                        {/* ✅ AVISO SUTIL QUE APARECE E SOME SOZINHO */}
-                        <Fade in={copySuccess}>
-                            <Box sx={{ mb: 1 }}>
+                        <Fade in={copySuccess} unmountOnExit>
+                            <Box sx={{ mt: 1, mb: 1 }}>
                                 <Alert severity="success" variant="filled" sx={{ py: 0, fontSize: '0.75rem' }}>
                                     Dados copiados com sucesso!
                                 </Alert>
                             </Box>
                         </Fade>
+
+
 
                         <Divider />
 
@@ -250,10 +260,10 @@ export default function Tickets() {
                                     variant="contained"
                                     fullWidth
                                     onClick={() => handleCloseTicket(selectedTicket.id)}
-                                    sx={{ 
-                                        textTransform: 'none', 
-                                        bgcolor: '#7b1616', 
-                                        '&:hover': { bgcolor: '#5a1010' } 
+                                    sx={{
+                                        textTransform: 'none',
+                                        bgcolor: '#7b1616',
+                                        '&:hover': { bgcolor: '#5a1010' }
                                     }}
                                 >
                                     Encerrar Ticket
@@ -264,30 +274,66 @@ export default function Tickets() {
                 )}
             </Drawer>
 
-            <Dialog open={openClassificationModal} onClose={() => setOpenClassificationModal(false)}>
-                <DialogTitle sx={{ fontWeight: 'bold', textAlign: 'center' }}>Classificar Chamado</DialogTitle>
+            {/* MODAL DE CLASSIFICAÇÃO ATUALIZADO */}
+            <Dialog
+                open={openClassificationModal}
+                onClose={() => setOpenClassificationModal(false)}
+                fullWidth
+                maxWidth="md" // Torna o modal mais largo
+                PaperProps={{ sx: { borderRadius: 3 } }}
+            >
+                <DialogTitle sx={{ fontWeight: 'bold', textAlign: 'center', pb: 0 }}>
+                    Classificar Chamado
+                </DialogTitle>
+
                 <DialogContent>
-                    <DialogContentText sx={{ mb: 2, textAlign: 'center' }}>Selecione a justificativa para encerrar o chamado:</DialogContentText>
+                    <DialogContentText sx={{ mb: 3, textAlign: 'center' }}>
+                        Selecione a justificativa para encerrar o chamado:
+                    </DialogContentText>
+
                     <FormControl component="fieldset" sx={{ width: '100%' }}>
-                        <RadioGroup value={classification} onChange={(e) => setClassification(e.target.value)}>
-                            <FormControlLabel value="Falha de Internet" control={<Radio />} label="Falha de Internet" />
-                            <FormControlLabel value="Falha de Pagamento" control={<Radio />} label="Falha de Pagamento" />
-                            <FormControlLabel value="Hardware" control={<Radio />} label="Hardware" />
-                            <FormControlLabel value="Ajuste de Cardápio" control={<Radio />} label="Ajuste de Cardápio" />
+                        <RadioGroup
+                            value={classification}
+                            onChange={(e) => setClassification(e.target.value)}
+                            sx={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(3, 1fr)', // Organiza em 3 colunas para diminuir a altura
+                                gap: 1, // Espaçamento entre os itens
+                            }}
+                        >
+                            {tags.map((tag) => (
+                                <FormControlLabel
+                                    key={tag}
+                                    value={tag}
+                                    control={<Radio color="error" size="small" />} // Radio menor
+                                    label={tag}
+                                    sx={{
+                                        '& .MuiFormControlLabel-label': {
+                                            fontSize: '0.85rem', // Fonte levemente menor para caber nas colunas
+                                        }
+                                    }}
+                                />
+                            ))}
                         </RadioGroup>
                     </FormControl>
                 </DialogContent>
-                <DialogActions sx={{ p: 2, justifyContent: 'center', gap: 2 }}>
-                    <Button onClick={() => setOpenClassificationModal(false)} sx={{ color: '#666', textTransform: 'none' }}>Cancelar</Button>
-                    <Button 
-                        onClick={handleConfirmCloseTicket} 
-                        variant="contained" 
-                        disabled={!classification} 
-                        sx={{ 
-                            bgcolor: '#7b1616', 
-                            '&:hover': { bgcolor: '#5a1010' }, 
-                            textTransform: 'none', 
-                            px: 4 
+
+                <DialogActions sx={{ p: 3, justifyContent: 'center', gap: 2 }}>
+                    <Button
+                        onClick={() => setOpenClassificationModal(false)}
+                        sx={{ color: '#666', textTransform: 'none' }}
+                    >
+                        Cancelar
+                    </Button>
+                    <Button
+                        onClick={handleConfirmCloseTicket}
+                        variant="contained"
+                        disabled={!classification}
+                        sx={{
+                            bgcolor: '#7b1616',
+                            '&:hover': { bgcolor: '#5a1010' },
+                            textTransform: 'none',
+                            px: 6 // Botão um pouco mais robusto
                         }}
                     >
                         Encerrar

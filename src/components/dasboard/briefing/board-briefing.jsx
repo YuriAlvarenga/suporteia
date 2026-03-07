@@ -69,9 +69,20 @@ export default function BoardBriefing() {
 
 
     const handleAdd = async () => {
-        if (!novoAviso.titulo || !novoAviso.conteudo) return
-        await dispatch(addAviso(novoAviso))
-        handleClose()
+
+        if (!novoAviso.titulo.trim() || !novoAviso.conteudo.trim()) return
+
+        try {
+
+            await dispatch(addAviso(novoAviso)).unwrap()
+
+            handleClose()
+
+        } catch (error) {
+
+            console.error("Erro ao criar aviso:", error)
+
+        }
     }
 
 
@@ -324,7 +335,8 @@ export default function BoardBriefing() {
                                 <Button
                                     variant="contained"
                                     onClick={handleAdd}
-                                    sx={{ bgcolor: 'var(--color-highlight)' }}
+                                    disabled={!novoAviso.titulo.trim() || !novoAviso.conteudo.trim()}
+                                    sx={{ bgcolor: 'var(--color-highlight)', '&:disabled': { bgcolor: 'rgba(0, 0, 0, 0.12)'}}}
                                 >
                                     Publicar Aviso
                                 </Button>

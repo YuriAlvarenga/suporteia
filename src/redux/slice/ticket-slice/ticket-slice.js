@@ -28,8 +28,8 @@ export const updateTicketStatus = createAsyncThunk(
         .from('chamados')
         .update({ 
           status: status,
-          classificacao: classificacao, // Nova coluna no banco
-          responsavel: userName         // Nome do usuário logado
+          classificacao: classificacao,
+          responsavel: userName         
         })
         .eq('id', id)
         .select()
