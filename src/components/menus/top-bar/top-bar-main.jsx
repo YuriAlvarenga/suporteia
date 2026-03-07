@@ -3,24 +3,42 @@ import { Box, Avatar, Menu, MenuItem, ListItemIcon, Divider, IconButton, Tooltip
 import { PersonAdd, Settings, Logout } from '@mui/icons-material'
 import { useDispatch, useSelector } from 'react-redux'
 import { logoutUser } from '../../../redux/slice/auth/auth-login-slice'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
+
 
 export default function TopBarLogout() {
+
     const [anchorEl, setAnchorEl] = React.useState(null)
     const open = Boolean(anchorEl)
 
     const dispatch = useDispatch()
     const navigate = useNavigate()
 
-    // Buscando os dados do usuário logado no Redux
-    const { user } = useSelector((state) => state.auth || {})
+    const { user, loadingSession } = useSelector((state) => state.auth || {})
 
-    // Lógica para pegar a inicial do nome
+    const location = useLocation()
+
+    const getTitle = () => {
+
+        if (location.pathname === "/") return "Home"
+
+        if (location.pathname.startsWith("/board-briefing"))
+            return "Briefing"
+
+        if (location.pathname.startsWith("/tickets"))
+            return "Chamados"
+
+        if (location.pathname.startsWith("/sign-up"))
+            return "Usuários"
+
+        return "Home"
+    }
+
     const getUserInitial = () => {
         if (user?.fullName) {
             return user.fullName.charAt(0).toUpperCase()
         }
-        return 'U' // Fallback caso o nome não exista
+        return ''
     }
 
     const handleClick = (event) => {
@@ -39,31 +57,33 @@ export default function TopBarLogout() {
     const handleLogout = async () => {
         try {
             await dispatch(logoutUser()).unwrap()
-            localStorage.removeItem('activeMenuItem') 
+            localStorage.removeItem('activeMenuItem')
             navigate('/sign-in')
         } catch (err) {
             console.error('Erro ao deslogar:', err)
         }
     }
 
+    if (loadingSession) {
+        return <Box sx={{ width: 32, height: 32 }} />
+    }
+
     return (
-        <React.Fragment>
-            <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
+        <>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%'}}>
+
+                <Typography sx={{ fontWeight: 'bold' }}>
+                    {getTitle()}
+                </Typography>
+
                 <Tooltip title="Configurações de Conta">
-                    <IconButton 
-                        onClick={handleClick} 
-                        size="small" 
-                        sx={{ ml: 2 }} 
-                        aria-controls={open ? 'account-menu' : undefined} 
-                        aria-haspopup="true" 
-                        aria-expanded={open ? 'true' : undefined}
-                    >
-                        {/* AQUI: Renderizando a inicial dinâmica */}
+                    <IconButton onClick={handleClick} size="small" sx={{ ml: 2 }}>
                         <Avatar sx={{ width: 32, height: 32, color: 'var(--color-highlight)', bgcolor: 'var(--color-background)' }}>
                             {getUserInitial()}
                         </Avatar>
                     </IconButton>
                 </Tooltip>
+
             </Box>
 
             <Menu
@@ -71,69 +91,48 @@ export default function TopBarLogout() {
                 id="account-menu"
                 open={open}
                 onClose={handleClose}
-                onClick={handleClose}
-                slotProps={{
-                    paper: {
-                        elevation: 0,
-                        sx: {
-                            overflow: 'visible',
-                            filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
-                            mt: 1.5,
-                            '& .MuiAvatar-root': {
-                                width: 32,
-                                height: 32,
-                                ml: -0.5,
-                                mr: 1,
-                            },
-                            '&::before': {
-                                content: '""',
-                                display: 'block',
-                                position: 'absolute',
-                                top: 0,
-                                right: 14,
-                                width: 10,
-                                height: 10,
-                                bgcolor: 'background.paper',
-                                transform: 'translateY(-50%) rotate(45deg)',
-                                zIndex: 0,
-                            },
-                        },
-                    },
-                }}
                 transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                 anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
-                <MenuItem onClick={handleClose}>
-                    <Avatar sx={{ bgcolor: 'var(--color-highlight)' }}>{getUserInitial()}</Avatar> 
-                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <MenuItem>
+                    <Avatar sx={{ bgcolor: 'var(--color-highlight)' }}>
+                        {getUserInitial()}
+                    </Avatar>
+
+                    <Box sx={{ display: 'flex', flexDirection: 'column', ml: 1 }}>
                         <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
                             {user?.fullName || 'Usuário'}
                         </Typography>
+
                         <Typography variant="caption" color="text.secondary">
                             {user?.role === 'admin' ? 'Administrador' : 'Analista'}
                         </Typography>
                     </Box>
                 </MenuItem>
+
                 <Divider />
+
                 <MenuItem onClick={handleAddAccount}>
                     <ListItemIcon>
                         <PersonAdd fontSize="small" />
                     </ListItemIcon>
                     Adicionar Usuário
                 </MenuItem>
+
                 <MenuItem onClick={handleClose}>
                     <ListItemIcon>
                         <Settings fontSize="small" />
                     </ListItemIcon>
                     Configurações
                 </MenuItem>
+
                 <MenuItem onClick={handleLogout}>
                     <ListItemIcon>
-                        <Logout fontSize="small" color="var(--color-highlight)" />
+                        <Logout fontSize="small" />
                     </ListItemIcon>
                     <Typography color="error">Sair</Typography>
                 </MenuItem>
             </Menu>
-        </React.Fragment>
+        </>
     )
 }

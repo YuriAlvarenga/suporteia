@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { 
-    Box, Paper, Typography, TextField, Button, IconButton, 
+import {
+    Box, Paper, Typography, TextField, Button, IconButton,
     Stack, Skeleton, Divider, Modal, Fade, Backdrop,
-    Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle 
+    Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
 } from '@mui/material'
-import CloseIcon from '@mui/icons-material/Close'
+
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ExpandLessIcon from '@mui/icons-material/ExpandLess'
+
 import { fetchAvisos, addAviso, deleteAviso } from '../../../redux/slice/briefing/briefing-slice'
 
-// Estilo do Modal de Criação
+
 const modalStyle = {
     position: 'absolute',
     top: '50%',
@@ -19,24 +23,42 @@ const modalStyle = {
     bgcolor: 'background.paper',
     boxShadow: 24,
     p: 4,
-    borderRadius: 2,
+    borderRadius: 3
 }
 
+
+/* CAPITALIZE */
+const capitalizeTitle = (text) => {
+    if (!text) return ''
+
+    return text
+        .toLowerCase()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+}
+
+
 export default function BoardBriefing() {
+
     const dispatch = useDispatch()
     const { avisos, loading } = useSelector((state) => state.avisos)
-    
-    // Estados para o Modal de Novo Aviso
+
     const [open, setOpen] = useState(false)
     const [novoAviso, setNovoAviso] = useState({ titulo: '', conteudo: '' })
 
-    // Estados para o Diálogo de Confirmação (Delete)
     const [confirmOpen, setConfirmOpen] = useState(false)
     const [idParaDeletar, setIdParaDeletar] = useState(null)
 
+    const [expanded, setExpanded] = useState({})
+
+
     useEffect(() => {
-        dispatch(fetchAvisos())
-    }, [dispatch])
+        if (!avisos.length) {
+            dispatch(fetchAvisos())
+        }
+    }, [dispatch, avisos.length])
+
 
     const handleOpen = () => setOpen(true)
 
@@ -45,22 +67,25 @@ export default function BoardBriefing() {
         setNovoAviso({ titulo: '', conteudo: '' })
     }
 
+
     const handleAdd = async () => {
         if (!novoAviso.titulo || !novoAviso.conteudo) return
         await dispatch(addAviso(novoAviso))
         handleClose()
     }
 
-    // Funções de Controle da Exclusão
+
     const handleDeleteClick = (id) => {
         setIdParaDeletar(id)
         setConfirmOpen(true)
     }
 
+
     const handleConfirmClose = () => {
         setConfirmOpen(false)
         setIdParaDeletar(null)
     }
+
 
     const handleConfirmDelete = () => {
         if (idParaDeletar) {
@@ -69,21 +94,26 @@ export default function BoardBriefing() {
         handleConfirmClose()
     }
 
+
+    const toggleExpand = (id) => {
+        setExpanded(prev => ({
+            ...prev,
+            [id]: !prev[id]
+        }))
+    }
+
+
     return (
-        <Box sx={{ p: 0 }}>
-            
+        <Box>
+
             {/* CABEÇALHO */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'var(--color-dark)' }}>
-                    Briefing
-                </Typography>
-                
-                <Button 
-                    variant="contained" 
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                <Button
+                    variant="contained"
                     startIcon={<AddCircleOutlineIcon />}
                     onClick={handleOpen}
-                    sx={{ 
-                        bgcolor: 'var(--color-highlight)', 
+                    sx={{
+                        bgcolor: 'var(--color-highlight)',
                         textTransform: 'none',
                         '&:hover': { bgcolor: 'var(--color-dark)' }
                     }}
@@ -92,80 +122,150 @@ export default function BoardBriefing() {
                 </Button>
             </Box>
 
-            {/* GRID DE AVISOS */}
-            <Box sx={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', 
-                gap: 3 
-            }}>
+
+            {/* GRID */}
+            <Box
+                sx={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+                    gap: 3,
+                    alignItems: 'start'
+                }}
+            >
+
                 {loading && avisos.length === 0 ? (
+
                     [1, 2, 3].map((i) => (
-                        <Skeleton 
-                            key={i} 
-                            variant="rectangular" 
-                            height={200} 
-                            sx={{ borderRadius: 2 }} 
+                        <Skeleton
+                            key={i}
+                            variant="rectangular"
+                            height={220}
+                            sx={{ borderRadius: 3 }}
                         />
                     ))
+
                 ) : (
-                    avisos.map((aviso) => (
-                        <Paper 
-                            key={aviso.id} 
-                            elevation={2} 
-                            sx={{ 
-                                p: 2.5, 
-                                position: 'relative',
-                                borderTop: '4px solid var(--color-highlight)'
-                            }}
-                        >
-                            {/* BOTÃO X - Agora abre o diálogo customizado */}
-                            <IconButton 
-                                size="small" 
-                                onClick={() => handleDeleteClick(aviso.id)}
-                                sx={{ 
-                                    position: 'absolute', 
-                                    top: 10, 
-                                    right: 10 
+
+                    avisos.map((aviso) => {
+
+                        const precisaExpandir = (aviso.conteudo || '').length > 180
+
+                        return (
+
+                            <Paper
+                                key={aviso.id}
+                                elevation={1}
+                                sx={{
+                                    p: 2.5,
+                                    height: expanded[aviso.id] ? 'auto' : 300,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'space-between',
+                                    borderRadius: 3,
+                                    border: '1px solid #eee',
+                                    transition: 'all 0.2s',
+                                    '&:hover': { boxShadow: 3 }
                                 }}
                             >
-                                <CloseIcon fontSize="small" />
-                            </IconButton>
-                            
-                            <Typography 
-                                variant="subtitle1" 
-                                sx={{ fontWeight: 'bold', pr: 4, mb: 0.5 }}
-                            >
-                                {aviso.titulo}
-                            </Typography>
-                            
-                            <Typography 
-                                variant="caption" 
-                                color="text.secondary" 
-                                sx={{ display: 'block', mb: 1.5 }}
-                            >
-                                {new Date(aviso.created_at).toLocaleDateString('pt-BR')}
-                            </Typography>
-                            
-                            <Divider sx={{ mb: 2 }} />
-                            
-                            <Typography 
-                                variant="body2" 
-                                sx={{ 
-                                    whiteSpace: 'pre-line', 
-                                    wordBreak: 'normal', 
-                                    overflowWrap: 'break-word',
-                                    lineHeight: 1.6,
-                                    color: 'var(--color-dark)'
-                                }}
-                            >
-                                {aviso.conteudo}
-                            </Typography>
-                        </Paper>
-                    ))
+
+                                <Box>
+
+                                    <Typography
+                                        variant="subtitle1"
+                                        sx={{ fontWeight: 'bold', mb: 0.5 }}
+                                    >
+                                        {capitalizeTitle(aviso.titulo)}
+                                    </Typography>
+
+
+                                    <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                        sx={{ display: 'block', mb: 1 }}
+                                    >
+                                        {new Date(aviso.created_at).toLocaleDateString('pt-BR')}
+                                    </Typography>
+
+
+                                    <Divider sx={{ mb: 1.5 }} />
+
+
+                                    <Typography
+                                        variant="body2"
+                                        sx={{
+                                            lineHeight: 1.7,
+                                            color: 'var(--color-dark)',
+                                            whiteSpace: 'pre-line',
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: expanded[aviso.id] ? 'unset' : 4,
+                                            WebkitBoxOrient: 'vertical',
+                                            overflow: 'hidden'
+                                        }}
+                                    >
+                                        {aviso.conteudo}
+                                    </Typography>
+
+                                </Box>
+
+
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        mt: 2
+                                    }}
+                                >
+
+                                    {precisaExpandir ? (
+
+                                        <Button
+                                            size="small"
+                                            startIcon={
+                                                expanded[aviso.id]
+                                                    ? <ExpandLessIcon />
+                                                    : <ExpandMoreIcon />
+                                            }
+                                            onClick={() => toggleExpand(aviso.id)}
+                                            sx={{
+                                                textTransform: 'none',
+                                                color: 'var(--color-highlight)'
+                                            }}
+                                        >
+                                            {expanded[aviso.id] ? 'Mostrar menos' : 'Ler mais'}
+                                        </Button>
+
+                                    ) : (
+
+                                        <Box />
+                                    )}
+
+
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => handleDeleteClick(aviso.id)}
+                                        sx={{
+                                            color: '#777',
+                                            '&:hover': { color: '#d32f2f' }
+                                        }}
+                                    >
+                                        <DeleteOutlineIcon fontSize="small" />
+                                    </IconButton>
+
+                                </Box>
+
+                            </Paper>
+
+                        )
+
+                    })
+
                 )}
+
             </Box>
 
-            {/* MODAL DE CRIAÇÃO */}
+
+            {/* MODAL */}
             <Modal
                 open={open}
                 onClose={handleClose}
@@ -173,101 +273,111 @@ export default function BoardBriefing() {
                 BackdropComponent={Backdrop}
                 BackdropProps={{ timeout: 500 }}
             >
+
                 <Fade in={open}>
                     <Box sx={modalStyle}>
-                        
-                        <IconButton
-                            onClick={handleClose}
-                            sx={{ 
-                                position: 'absolute', 
-                                top: 10, 
-                                right: 10 
-                            }}
-                        >
-                            <CloseIcon />
-                        </IconButton>
 
                         <Typography variant="h6" sx={{ mb: 3, fontWeight: 'bold' }}>
                             Novo Comunicado
                         </Typography>
 
+
                         <Stack spacing={2.5}>
-                            <TextField 
-                                label="Título do Aviso" 
-                                fullWidth 
+
+                            <TextField
+                                label="Título do Aviso"
+                                fullWidth
                                 value={novoAviso.titulo}
-                                onChange={(e) => 
+                                onChange={(e) =>
                                     setNovoAviso({
-                                        ...novoAviso, 
+                                        ...novoAviso,
                                         titulo: e.target.value
                                     })
                                 }
                             />
-                            <TextField 
-                                label="Conteúdo (Markdown ou Texto Simples)" 
-                                multiline 
-                                rows={6} 
-                                fullWidth 
+
+
+                            <TextField
+                                label="Conteúdo"
+                                multiline
+                                rows={6}
+                                fullWidth
                                 value={novoAviso.conteudo}
-                                onChange={(e) => 
+                                onChange={(e) =>
                                     setNovoAviso({
-                                        ...novoAviso, 
+                                        ...novoAviso,
                                         conteudo: e.target.value
                                     })
                                 }
                             />
 
-                            <Box sx={{ 
-                                display: 'flex', 
-                                justifyContent: 'flex-end', 
-                                mt: 1 
-                            }}>
-                                <Button 
-                                    variant="contained" 
+
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+
+                                <Button
+                                    onClick={handleClose}
+                                    sx={{ textTransform: 'none' }}
+                                >
+                                    Cancelar
+                                </Button>
+
+                                <Button
+                                    variant="contained"
                                     onClick={handleAdd}
                                     sx={{ bgcolor: 'var(--color-highlight)' }}
                                 >
                                     Publicar Aviso
                                 </Button>
+
                             </Box>
+
                         </Stack>
 
                     </Box>
                 </Fade>
+
             </Modal>
 
-            {/* DIÁLOGO DE CONFIRMAÇÃO DE EXCLUSÃO (MAIS AGRADÁVEL) */}
+
+            {/* CONFIRMAR DELETE */}
             <Dialog
                 open={confirmOpen}
                 onClose={handleConfirmClose}
-                PaperProps={{
-                    sx: { borderRadius: 3, p: 1 }
-                }}
+                PaperProps={{ sx: { borderRadius: 3 } }}
             >
+
+                <DialogTitle>
+                    Remover comunicado
+                </DialogTitle>
+
+
                 <DialogContent>
                     <DialogContentText>
                         Tem certeza que deseja remover este comunicado?
                     </DialogContentText>
                 </DialogContent>
+
+
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={handleConfirmClose} sx={{ color: 'text.secondary', textTransform: 'none' }}>
+                    <Button
+                        onClick={handleConfirmClose}
+                        sx={{ textTransform: 'none' }}
+                    >
                         Cancelar
                     </Button>
-                    <Button 
-                        onClick={handleConfirmDelete} 
-                        variant="contained" 
+
+                    <Button
+                        onClick={handleConfirmDelete}
+                        variant="contained"
                         color="error"
-                        autoFocus
-                        sx={{ 
-                            textTransform: 'none', 
-                            borderRadius: 2,
-                            boxShadow: 'none'
-                        }}
+                        sx={{ textTransform: 'none' }}
                     >
                         Confirmar
                     </Button>
                 </DialogActions>
+
             </Dialog>
+
         </Box>
     )
 }

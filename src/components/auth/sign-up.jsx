@@ -8,21 +8,21 @@ import {
   Dialog, DialogContent, DialogContentText, DialogActions,
   Skeleton
 } from '@mui/material'
-import { Edit as EditIcon, Delete as DeleteIcon, Check as CheckIcon, Close as CloseIcon} from '@mui/icons-material'
+import { Edit as EditIcon, Delete as DeleteIcon, Check as CheckIcon, Close as CloseIcon } from '@mui/icons-material'
 
 // Importando as ações do Redux
-import { fetchProfiles, createNewUser, updateProfile, deleteProfile,resetStatus } from '../../redux/slice/auth/user-slice'
+import { fetchProfiles, createNewUser, updateProfile, deleteProfile, resetStatus } from '../../redux/slice/auth/user-slice'
 
 export default function SignUp() {
   const dispatch = useDispatch()
-  
+
   // Pegando dados do estado global
-  const { 
-    list: users, 
-    loading, 
-    initialFetchLoading, 
-    error, 
-    success 
+  const {
+    list: users,
+    loading,
+    initialFetchLoading,
+    error,
+    success
   } = useSelector((state) => state.users)
 
   const [editingId, setEditingId] = useState(null)
@@ -51,8 +51,10 @@ export default function SignUp() {
     passwordsDoNotMatch
 
   useEffect(() => {
-    dispatch(fetchProfiles())
-  }, [dispatch])
+    if (!users.length) {
+      dispatch(fetchProfiles())
+    }
+  }, [dispatch, users.length])
 
   // Limpar mensagens de erro/sucesso após 4 segundos
   useEffect(() => {
@@ -65,7 +67,7 @@ export default function SignUp() {
   const handleCreateUser = async (e) => {
     e.preventDefault()
     const result = await dispatch(createNewUser(formData))
-    
+
     if (result.meta.requestStatus === 'fulfilled') {
       setFormData({ fullName: '', email: '', password: '', confirmPassword: '', role: 'user' })
     }
@@ -207,7 +209,7 @@ export default function SignUp() {
       </Paper>
 
       <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold' }}>Usuários Ativos</Typography>
-      
+
       <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
         <Table size="small">
           <TableHead sx={{ bgcolor: '#f9f9f9' }}>
@@ -293,5 +295,5 @@ export default function SignUp() {
         </DialogActions>
       </Dialog>
     </Box>
-  ) 
+  )
 }

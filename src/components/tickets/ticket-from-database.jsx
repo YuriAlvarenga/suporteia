@@ -133,7 +133,7 @@ export default function Tickets() {
         <React.Fragment>
             <Paper elevation={3} sx={{ padding: 2 }}>
                 <Table size="small" sx={{ tableLayout: 'fixed', width: '100%' }}>
-                    <TableHead>
+                    <TableHead sx={{ '& .MuiTableCell-root': {  border: '1px solid rgba(255,255,255,0.3)'}}}>
                         <TableRow sx={{ background: 'var(--color-highlight)' }}>
                             <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', textAlign: 'center', color: '#FFF', padding: '8px' }}>Data</TableCell>
                             <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', textAlign: 'center', color: '#FFF', padding: '8px' }}>Ticket</TableCell>

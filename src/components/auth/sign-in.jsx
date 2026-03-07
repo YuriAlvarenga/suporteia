@@ -87,7 +87,6 @@ export default function SignIn() {
                         )}
                     </Box>
                     <Box component="form" onSubmit={handleSubmit} noValidate sx={{ width: '80%', maxWidth: 400, p: 3 }}>
-                        {/* Nome do hotel e CNPJ */}
                         <Grid container spacing={2}>
 
                             <TextField

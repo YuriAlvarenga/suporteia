@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { fetchCompanies, createCompany } from '../../../redux/slice/companies/company-slice'
 import { fetchTickets } from '../../../redux/slice/ticket-slice/ticket-slice'
-import { 
-    Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, 
+import {
+    Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText,
     Typography, Divider, Box, TextField, IconButton, Badge, Skeleton, Avatar
 } from '@mui/material'
 import ViewInArIcon from '@mui/icons-material/ViewInAr'
@@ -12,6 +12,8 @@ import CheckIcon from '@mui/icons-material/Check'
 import CloseIcon from '@mui/icons-material/Close'
 import GroupsIcon from '@mui/icons-material/Groups'
 import FolderSharedIcon from '@mui/icons-material/FolderShared'
+import InsightsIcon from '@mui/icons-material/Insights'
+
 
 const normalizeName = (name) => {
     if (!name) return ''
@@ -28,10 +30,10 @@ const capitalizeName = (name) => {
 export default function SideBar() {
     const navigate = useNavigate()
     const dispatch = useDispatch()
-    
+
     const { companies, loading } = useSelector((state) => state.companies)
     const { tickets } = useSelector((state) => state.tickets)
-    
+
     const [activePath, setActivePath] = useState(localStorage.getItem('activeMenuItem') || '/board-briefing')
     const [isCreating, setIsCreating] = useState(false)
     const [newGroupName, setNewGroupName] = useState('')
@@ -44,8 +46,8 @@ export default function SideBar() {
     const getTicketCount = (companyName) => {
         if (!tickets) return 0
         const targetId = normalizeName(companyName);
-        return tickets.filter(t => 
-            normalizeName(t.cliente).includes(targetId) && 
+        return tickets.filter(t =>
+            normalizeName(t.cliente).includes(targetId) &&
             t.status?.toLowerCase().trim() === "em atendimento"
         ).length
     }
@@ -78,10 +80,19 @@ export default function SideBar() {
     return (
         <Drawer variant="permanent" sx={{ width: 200, flexShrink: 0 }}>
             <List sx={{ height: '100vh', width: 200, background: 'var(--color-background)', overflowY: 'auto', pb: 8 }}>
-                
+
                 <ListItem sx={{ py: 1.2, px: 3 }}>
                     <ViewInArIcon sx={{ fontSize: '0.9rem', color: 'var(--color-dark)' }} />
-                    <Typography sx={{ ml: 2, fontSize: '0.9rem', color: 'var(--color-dark)', fontWeight: 'bold' }}>
+                    <Typography
+                        onClick={() => handleClick('/')}
+                        sx={{
+                            ml: 2,
+                            fontSize: '0.9rem',
+                            color: 'var(--color-dark)',
+                            fontWeight: 'bold',
+                            cursor: 'pointer'
+                        }}
+                    >
                         Support iFood
                     </Typography>
                 </ListItem>
@@ -94,8 +105,29 @@ export default function SideBar() {
 
                 <ListItem disablePadding>
                     <ListItemButton selected={activePath === '/board-briefing'} onClick={() => handleClick('/board-briefing')}>
-                        <ListItemIcon>
-                            <FolderSharedIcon fontSize="small" />
+                        <ListItemIcon sx={{ minWidth: 40 }}>
+                            <Box
+                                sx={{
+                                    width: 28,
+                                    height: 28,
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    backgroundColor: activePath === '/board-briefing'
+                                        ? '#d9d9d9'
+                                        : '#d9d9d9'
+                                }}
+                            >
+                                <InsightsIcon
+                                    sx={{
+                                        fontSize: 16,
+                                        color: activePath === '/board-briefing'
+                                            ? '#7b1616'
+                                            : '#333'
+                                    }}
+                                />
+                            </Box>
                         </ListItemIcon>
                         <ListItemText primary="Briefing" />
                     </ListItemButton>
@@ -116,18 +148,18 @@ export default function SideBar() {
                         const companyPath = `/tickets/${normalizeName(company.name)}`
                         const count = getTicketCount(company.name)
                         const isSelected = activePath === companyPath
-                        
+
                         return (
                             <ListItem disablePadding key={company.id}>
                                 <ListItemButton selected={isSelected} onClick={() => handleClick(companyPath)}>
-                                    
+
                                     <ListItemIcon sx={{ minWidth: 40 }}>
                                         <Avatar
                                             sx={{
                                                 width: 32,
                                                 height: 32,
                                                 fontSize: 14,
-                                                bgcolor: '#d9d9d9' ,
+                                                bgcolor: '#d9d9d9',
                                                 color: isSelected ? '#7b1616' : '#333'
                                             }}
                                         >
@@ -135,24 +167,24 @@ export default function SideBar() {
                                         </Avatar>
                                     </ListItemIcon>
 
-                                    <ListItemText 
-                                        primary={capitalizeName(company.name)} 
-                                        sx={{ '& span': { fontSize: '0.85rem' } }} 
+                                    <ListItemText
+                                        primary={capitalizeName(company.name)}
+                                        sx={{ '& span': { fontSize: '0.85rem' } }}
                                     />
 
                                     {count > 0 && (
-                                        <Badge 
-                                            badgeContent={count} 
-                                            sx={{ 
-                                                '& .MuiBadge-badge': { 
+                                        <Badge
+                                            badgeContent={count}
+                                            sx={{
+                                                '& .MuiBadge-badge': {
                                                     backgroundColor: '#ffffff',
                                                     color: '#7b1616',
                                                     fontWeight: 'bold',
                                                     fontSize: '0.65rem',
                                                     height: 18,
                                                     minWidth: 18
-                                                } 
-                                            }} 
+                                                }
+                                            }}
                                         />
                                     )}
 
