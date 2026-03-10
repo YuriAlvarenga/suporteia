@@ -51,10 +51,10 @@ export default function SignUp() {
     passwordsDoNotMatch
 
   useEffect(() => {
-    if (!users.length) {
+    if (users.length === 0) {
       dispatch(fetchProfiles())
     }
-  }, [dispatch, users.length])
+  }, [])
 
   // Limpar mensagens de erro/sucesso após 4 segundos
   useEffect(() => {

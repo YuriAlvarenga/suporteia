@@ -1,58 +1,43 @@
-import React, { useEffect, useRef } from "react"
+import React from "react"
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
+import { useSelector } from "react-redux"
+
 import SignIn from "./components/auth/sign-in"
 import Home from "./pages/home"
-import { useSelector, useDispatch } from "react-redux"
 import BoardBriefing from "./components/dasboard/briefing/board-briefing"
 import Tickets from "./components/tickets/ticket-from-database"
-import { loadUserFromSession } from "./redux/slice/auth/auth-login-slice"
 import SignUp from "./components/auth/sign-up"
 
 export default function AppRoutes() {
 
-    const dispatch = useDispatch()
-    const sessionLoaded = useRef(false)
+  const { isAuthenticated } = useSelector((state) => state.auth)
 
-    const { isAuthenticated, loadingSession } = useSelector((state) => state.auth)
+  const Private = ({ children }) => {
 
-    useEffect(() => {
-
-        if (sessionLoaded.current) return
-
-        sessionLoaded.current = true
-
-        dispatch(loadUserFromSession())
-
-    }, [dispatch])
-
-    const Private = ({ children }) => {
-
-        if (loadingSession) return <div>Carregando...</div>
-
-        if (!isAuthenticated) {
-            return <Navigate to={"/sign-in"} replace />
-        }
-
-        return children
+    if (!isAuthenticated) {
+      return <Navigate to="/sign-in" replace />
     }
 
-    return (
-        <Router>
-            <Routes>
+    return children
+  }
 
-                <Route path="/sign-in" element={<SignIn />} />
+  return (
+    <Router>
+      <Routes>
 
-                <Route path="/*" element={<Private><Home /></Private>}>
+        <Route path="/sign-in" element={<SignIn />} />
 
-                    <Route path="board-briefing" element={<BoardBriefing />} />
+        <Route path="/*" element={ <Private><Home /></Private>} >
 
-                    <Route path="tickets/:companyId" element={<Tickets />} />
+          <Route path="board-briefing" element={<BoardBriefing />} />
 
-                    <Route path="sign-up" element={<SignUp />} />
+          <Route path="tickets/:companyId" element={<Tickets />} />
 
-                </Route>
+          <Route path="sign-up" element={<SignUp />} />
 
-            </Routes>
-        </Router>
-    )
+        </Route>
+
+      </Routes>
+    </Router>
+  )
 }

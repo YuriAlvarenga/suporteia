@@ -14,7 +14,7 @@ export default function TopBarLogout() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
 
-    const { user, loadingSession } = useSelector((state) => state.auth || {})
+    const { user } = useSelector((state) => state.auth)
 
     const location = useLocation()
 
@@ -64,9 +64,6 @@ export default function TopBarLogout() {
         }
     }
 
-    if (loadingSession) {
-        return <Box sx={{ width: 32, height: 32 }} />
-    }
 
     return (
         <>

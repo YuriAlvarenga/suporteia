@@ -9,40 +9,44 @@ export default function AuthListener() {
 
   useEffect(() => {
 
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        const authUser = session?.user
+    const { data: { subscription } } =
+      supabase.auth.onAuthStateChange(
+        async (event, session) => {
 
-        if (!authUser) {
-          dispatch(setUser(null))
-          return
+          const authUser = session?.user
+
+          if (!authUser) {
+            dispatch(setUser(null))
+            return
+          }
+
+          const { data: profile, error } = await supabase
+            .from("profiles")
+            .select("full_name, role, email")
+            .eq("id", authUser.id)
+            .single()
+
+          if (error) {
+
+            console.error("Erro buscando profile:", error)
+
+            dispatch(setUser(null))
+
+            return
+          }
+
+          dispatch(
+            setUser({
+              id: authUser.id,
+              email: authUser.email,
+              fullName: profile.full_name,
+              role: profile.role
+            })
+          )
         }
+      )
 
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("full_name, role, email")
-          .eq("id", authUser.id)
-          .single()
-
-        if (error) {
-          console.error("❌ Erro buscando profile:", error)
-          return
-        }
-
-        dispatch(
-          setUser({
-            id: authUser.id,
-            email: authUser.email,
-            fullName: profile.full_name,
-            role: profile.role
-          })
-        )
-      }
-    )
-
-    return () => {
-      listener.subscription.unsubscribe()
-    }
+    return () => subscription.unsubscribe()
 
   }, [dispatch])
 

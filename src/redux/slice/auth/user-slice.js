@@ -31,7 +31,7 @@ export const fetchProfiles = createAsyncThunk(
       return rejectWithValue(error.message)
     }
 
-    return data
+    return data ?? []
   }
 )
 
@@ -149,13 +149,17 @@ const userSlice = createSlice({
     builder
       /* FETCH USERS */
       .addCase(fetchProfiles.pending, (state) => {
-        state.initialFetchLoading = true
         state.error = null
+
+        // só mostra skeleton se ainda não carregou nada
+        if (state.list.length === 0) {
+          state.initialFetchLoading = true
+        }
       })
 
       .addCase(fetchProfiles.fulfilled, (state, action) => {
         state.initialFetchLoading = false
-        state.list = action.payload || []
+        state.list = action.payload ?? []
       })
 
       .addCase(fetchProfiles.rejected, (state, action) => {
