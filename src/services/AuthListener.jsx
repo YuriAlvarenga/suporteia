@@ -1,7 +1,8 @@
 import { useEffect } from "react"
 import { supabase } from "../services/supabase"
 import { useDispatch } from "react-redux"
-import { setUser } from "../store/slices/auth/authSlice"
+import { setUser } from "../redux/slice/auth/auth-login-slice"
+
 
 export default function AuthListener() {
 
