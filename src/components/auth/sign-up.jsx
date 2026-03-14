@@ -56,6 +56,7 @@ export default function SignUp() {
     }
   }, [])
 
+  
   // Limpar mensagens de erro/sucesso após 4 segundos
   useEffect(() => {
     if (success || error) {
