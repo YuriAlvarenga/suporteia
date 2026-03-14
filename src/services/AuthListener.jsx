@@ -36,7 +36,7 @@ export default function AuthListener() {
 
     async function loadProfile(session) {
 
-      console.log("👤 Carregando profile do usuário:", session.user.id)
+      console.log("👤 Carregando profile:", session.user.id)
 
       const { data: profile, error } = await supabase
         .from("profiles")
@@ -48,14 +48,9 @@ export default function AuthListener() {
       console.log("❌ PROFILE ERROR:", error)
 
       if (error) {
-
-        console.log("⚠️ Erro ao buscar profile")
         dispatch(setUser(null))
         return
-
       }
-
-      console.log("✅ Enviando usuário para Redux")
 
       dispatch(
         setUser({
@@ -65,36 +60,31 @@ export default function AuthListener() {
           role: profile?.role
         })
       )
-
     }
 
     checkInitialSession()
 
     const { data: { subscription } } =
-      supabase.auth.onAuthStateChange(
-        async (event, session) => {
+      supabase.auth.onAuthStateChange(async (event, session) => {
 
-          console.log("🔥 EVENTO AUTH:", event)
-          console.log("📦 SESSION:", session)
+        console.log("🔥 EVENTO AUTH:", event)
+        console.log("📦 SESSION:", session)
 
-          if (!session) {
+        if (!session) {
 
-            console.log("🚪 Usuário deslogado")
-            dispatch(setUser(null))
-            return
-
-          }
-
-          await loadProfile(session)
+          console.log("🚪 Usuário deslogado")
+          dispatch(setUser(null))
+          return
 
         }
-      )
+
+        await loadProfile(session)
+
+      })
 
     return () => {
-
       console.log("🧹 Limpando AuthListener")
       subscription.unsubscribe()
-
     }
 
   }, [dispatch])
