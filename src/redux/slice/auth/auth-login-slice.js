@@ -71,6 +71,7 @@ const parsedUser = storedUser ? JSON.parse(storedUser) : null
 
 const initialState = {
   loading: false,
+  loadingSession: true, // ← importante
   user: parsedUser,
   role: parsedUser?.role || null,
   isAuthenticated: !!parsedUser,
@@ -92,6 +93,8 @@ const authSlice = createSlice({
     },
 
     setUser(state, action) {
+
+      state.loadingSession = false
 
       if (action.payload) {
 
