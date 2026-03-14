@@ -1,144 +1,118 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
 import { supabase } from "../../../services/supabase"
 
-/* ======================================================
-   FETCH PROFILES
-====================================================== */
-export const fetchProfiles = createAsyncThunk(
-  "users/fetchProfiles",
-  async (_, { rejectWithValue }) => {
+/* ================================
+   LOGIN
+================================ */
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .order("full_name", { ascending: true })
+export const loginUser = createAsyncThunk(
+  "auth/loginUser",
+  async ({ email, password }, { rejectWithValue }) => {
 
-    if (error) {
-      console.error("❌ Erro fetchProfiles:", error)
-      return rejectWithValue(error.message)
-    }
-
-    return data ?? []
-  }
-)
-
-/* ======================================================
-   CREATE USER
-====================================================== */
-export const createNewUser = createAsyncThunk(
-  "users/createNewUser",
-  async ({ email, password, fullName, role }, { rejectWithValue, dispatch }) => {
-
-    console.log("👤 Criando usuário:", email)
-
-    const { data, error: authError } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          role: role
-        }
-      }
+      password
     })
 
-    if (authError) {
-      console.error("❌ Erro auth:", authError)
-      return rejectWithValue(authError.message)
-    }
-
-    console.log("✅ Usuário criado:", data)
-
-    if (data.user) {
-
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({
-          full_name: fullName,
-          role: role
-        })
-        .eq("id", data.user.id)
-
-      if (profileError) {
-        console.error("❌ Erro profile:", profileError)
-        return rejectWithValue(profileError.message)
-      }
-
-      console.log("✅ Profile atualizado")
-    }
-
-    await dispatch(fetchProfiles())
-
-    return true
-  }
-)
-
-/* ======================================================
-   UPDATE PROFILE
-====================================================== */
-export const updateProfile = createAsyncThunk(
-  "users/updateProfile",
-  async ({ id, full_name, role }, { rejectWithValue, dispatch }) => {
-
-    const { error } = await supabase
-      .from("profiles")
-      .update({ full_name, role })
-      .eq("id", id)
-
     if (error) {
-      console.error("❌ Erro update:", error)
       return rejectWithValue(error.message)
     }
 
-    await dispatch(fetchProfiles())
+    const user = data.user
 
-    return true
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("full_name, role, email")
+      .eq("id", user.id)
+      .single()
+
+    if (profileError) {
+      return rejectWithValue(profileError.message)
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      fullName: profile.full_name,
+      role: profile.role
+    }
   }
 )
 
-/* ======================================================
-   DELETE PROFILE
-====================================================== */
-export const deleteProfile = createAsyncThunk(
-  "users/deleteProfile",
-  async (id, { rejectWithValue, dispatch }) => {
+/* ================================
+   LOGOUT
+================================ */
 
-    const { error } = await supabase
-      .from("profiles")
-      .delete()
-      .eq("id", id)
+export const logoutUser = createAsyncThunk(
+  "auth/logoutUser",
+  async (_, { rejectWithValue }) => {
+
+    const { error } = await supabase.auth.signOut()
 
     if (error) {
-      console.error("❌ Erro delete:", error)
       return rejectWithValue(error.message)
     }
 
-    await dispatch(fetchProfiles())
-
     return true
   }
 )
 
-/* ======================================================
+/* ================================
+   LOCAL STORAGE
+================================ */
+
+const storedUser = localStorage.getItem("authUser")
+
+const parsedUser = storedUser ? JSON.parse(storedUser) : null
+
+/* ================================
+   INITIAL STATE
+================================ */
+
+const initialState = {
+  loading: false,
+  user: parsedUser,
+  role: parsedUser?.role || null,
+  isAuthenticated: !!parsedUser,
+  error: null
+}
+
+/* ================================
    SLICE
-====================================================== */
+================================ */
 
-const userSlice = createSlice({
-  name: "users",
-
-  initialState: {
-    list: [],
-    loading: false,
-    initialFetchLoading: false,
-    error: null,
-    success: false
-  },
+const authSlice = createSlice({
+  name: "auth",
+  initialState,
 
   reducers: {
 
-    resetStatus: (state) => {
+    clearError(state) {
       state.error = null
-      state.success = false
+    },
+
+    setUser(state, action) {
+
+      if (action.payload) {
+
+        state.user = action.payload
+        state.role = action.payload.role
+        state.isAuthenticated = true
+
+        localStorage.setItem(
+          "authUser",
+          JSON.stringify(action.payload)
+        )
+
+      } else {
+
+        state.user = null
+        state.role = null
+        state.isAuthenticated = false
+
+        localStorage.removeItem("authUser")
+
+      }
     }
   },
 
@@ -146,45 +120,44 @@ const userSlice = createSlice({
 
     builder
 
-      /* FETCH USERS */
-      .addCase(fetchProfiles.pending, (state) => {
+      /* LOGIN */
 
-        state.error = null
-
-        if (state.list.length === 0) {
-          state.initialFetchLoading = true
-        }
-      })
-
-      .addCase(fetchProfiles.fulfilled, (state, action) => {
-        state.initialFetchLoading = false
-        state.list = action.payload ?? []
-      })
-
-      .addCase(fetchProfiles.rejected, (state, action) => {
-        state.initialFetchLoading = false
-        state.error = action.payload
-      })
-
-      /* CREATE USER */
-      .addCase(createNewUser.pending, (state) => {
+      .addCase(loginUser.pending, (state) => {
         state.loading = true
         state.error = null
-        state.success = false
       })
 
-      .addCase(createNewUser.fulfilled, (state) => {
+      .addCase(loginUser.fulfilled, (state, action) => {
+
         state.loading = false
-        state.success = true
+        state.user = action.payload
+        state.role = action.payload.role
+        state.isAuthenticated = true
+
+        localStorage.setItem(
+          "authUser",
+          JSON.stringify(action.payload)
+        )
       })
 
-      .addCase(createNewUser.rejected, (state, action) => {
+      .addCase(loginUser.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload
+      })
+
+      /* LOGOUT */
+
+      .addCase(logoutUser.fulfilled, (state) => {
+
+        state.user = null
+        state.role = null
+        state.isAuthenticated = false
+        state.error = null
+
+        localStorage.removeItem("authUser")
       })
   }
 })
 
-export const { resetStatus } = userSlice.actions
-
-export default userSlice.reducer
+export const { clearError, setUser } = authSlice.actions
+export default authSlice.reducer

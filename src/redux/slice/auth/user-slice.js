@@ -1,10 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
 import { supabase } from "../../../services/supabase"
 
-// Cliente temporário para criar usuários sem deslogar o admin
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
 
 /* ======================================================
    FETCH PROFILES
@@ -34,76 +30,39 @@ export const createNewUser = createAsyncThunk(
   "users/createNewUser",
   async ({ email, password, fullName, role }, { rejectWithValue, dispatch }) => {
 
-    try {
-
-      console.log("🧠 Salvando sessão atual...")
-
-      const { data: currentSession } = await supabase.auth.getSession()
-
-      const adminSession = currentSession?.session
-
-      console.log("SESSION ADMIN:", adminSession)
-
-      console.log("👤 Criando novo usuário...")
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-            role: role
-          }
+    const { data, error: authError } = await tempSupabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          role: role
         }
-      })
-
-      if (error) {
-        console.error("❌ Erro ao criar usuário:", error)
-        return rejectWithValue(error.message)
       }
+    })
 
-      console.log("✅ Usuário criado:", data)
-
-      if (data.user) {
-
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .update({
-            full_name: fullName,
-            role: role
-          })
-          .eq("id", data.user.id)
-
-        if (profileError) {
-          console.error("❌ Erro profile:", profileError)
-          return rejectWithValue(profileError.message)
-        }
-
-      }
-
-      console.log("🔄 Restaurando sessão do admin...")
-
-      if (adminSession) {
-
-        await supabase.auth.setSession({
-          access_token: adminSession.access_token,
-          refresh_token: adminSession.refresh_token
-        })
-
-      }
-
-      console.log("✅ Sessão restaurada")
-
-      await dispatch(fetchProfiles())
-
-      return true
-
-    } catch (err) {
-
-      console.error("❌ ERRO GERAL:", err)
-      return rejectWithValue(err.message)
-
+    if (authError) {
+      console.error("❌ Erro auth:", authError)
+      return rejectWithValue(authError.message)
     }
+
+    if (data.user) {
+
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          full_name: fullName,
+          role: role
+        })
+        .eq("id", data.user.id)
+
+      if (profileError) {
+        return rejectWithValue(profileError.message)
+      }
+    }
+
+    await dispatch(fetchProfiles())
+    return true
   }
 )
 
