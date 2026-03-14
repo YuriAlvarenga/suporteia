@@ -16,32 +16,31 @@ export default function AuthListener() {
         async (event, session) => {
 
           console.log("EVENTO AUTH:", event)
+          console.log("SESSION:", session)
 
           if (!session) {
             dispatch(setUser(null))
             return
           }
 
-          // Só buscar profile quando necessário
-          if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+          const user = session.user
 
-            const user = session.user
+          const { data: profile, error } = await supabase
+            .from("profiles")
+            .select("full_name, role, email")
+            .eq("id", user.id)
+            .single()
 
-            const { data: profile } = await supabase
-              .from("profiles")
-              .select("full_name, role, email")
-              .eq("id", user.id)
-              .single()
+          console.log("PROFILE:", profile)
 
-            dispatch(
-              setUser({
-                id: user.id,
-                email: user.email,
-                fullName: profile?.full_name,
-                role: profile?.role
-              })
-            )
-          }
+          dispatch(
+            setUser({
+              id: user.id,
+              email: user.email,
+              fullName: profile?.full_name,
+              role: profile?.role
+            })
+          )
         }
       )
 
