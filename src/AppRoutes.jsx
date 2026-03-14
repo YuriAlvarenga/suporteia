@@ -10,9 +10,13 @@ import SignUp from "./components/auth/sign-up"
 
 export default function AppRoutes() {
 
-  const { isAuthenticated } = useSelector((state) => state.auth)
+  const { isAuthenticated, loadingSession } = useSelector((state) => state.auth)
 
   const Private = ({ children }) => {
+
+    if (loadingSession) {
+    return <div>Carregando sessão...</div>
+  }
 
     if (!isAuthenticated) {
       return <Navigate to="/sign-in" replace />
@@ -27,7 +31,7 @@ export default function AppRoutes() {
 
         <Route path="/sign-in" element={<SignIn />} />
 
-        <Route path="/*" element={ <Private><Home /></Private>} >
+        <Route path="/*" element={<Private><Home /></Private>} >
 
           <Route path="board-briefing" element={<BoardBriefing />} />
 

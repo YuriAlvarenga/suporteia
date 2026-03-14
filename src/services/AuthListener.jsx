@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import { supabase } from "../services/supabase"
 import { useDispatch } from "react-redux"
-import { setUser } from "../redux/slice/auth/auth-login-slice"
+import { setUser } from "../store/slices/auth/authSlice"
 
 export default function AuthListener() {
 
@@ -11,45 +11,45 @@ export default function AuthListener() {
 
     console.log("AuthListener iniciado")
 
-    supabase.auth.getSession().then(({ data }) => {
-      console.log("Sessão atual:", data.session)
-    })
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
 
-    const { data: { subscription } } =
-      supabase.auth.onAuthStateChange(
-        async (event, session) => {
+        console.log("EVENTO AUTH:", event)
+        console.log("SESSION:", session)
 
-          console.log("EVENTO AUTH:", event)
-          console.log("SESSION:", session)
+        if (!session) {
+          dispatch(setUser(null))
+          return
+        }
 
-          const authUser = session?.user
+        const user = session.user
 
-          if (!authUser) {
-            dispatch(setUser(null))
-            return
-          }
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("full_name, role, email")
+          .eq("id", user.id)
+          .single()
 
-          const { data: profile, error } = await supabase
-            .from("profiles")
-            .select("full_name, role, email")
-            .eq("id", authUser.id)
-            .single()
+        console.log("PROFILE:", profile)
+        console.log("PROFILE ERROR:", error)
 
-          console.log("PROFILE:", profile)
-          console.log("PROFILE ERROR:", error)
+        if (profile) {
 
           dispatch(
             setUser({
-              id: authUser.id,
-              email: authUser.email,
-              fullName: profile?.full_name,
-              role: profile?.role
+              id: user.id,
+              email: user.email,
+              fullName: profile.full_name,
+              role: profile.role
             })
           )
         }
-      )
+      }
+    )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      listener.subscription.unsubscribe()
+    }
 
   }, [dispatch])
 

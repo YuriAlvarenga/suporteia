@@ -62,7 +62,6 @@ export const logoutUser = createAsyncThunk(
 ================================ */
 
 const storedUser = localStorage.getItem("authUser")
-
 const parsedUser = storedUser ? JSON.parse(storedUser) : null
 
 /* ================================
@@ -71,6 +70,7 @@ const parsedUser = storedUser ? JSON.parse(storedUser) : null
 
 const initialState = {
   loading: false,
+  loadingSession: true,
   user: parsedUser,
   role: parsedUser?.role || null,
   isAuthenticated: !!parsedUser,
@@ -92,6 +92,9 @@ const authSlice = createSlice({
     },
 
     setUser(state, action) {
+
+      // sessão terminou de carregar
+      state.loadingSession = false
 
       if (action.payload) {
 
