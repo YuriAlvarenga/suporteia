@@ -68,6 +68,7 @@ const authSlice = createSlice({
     },
 
     setUser(state, action) {
+      console.log("🧠 REDUX setUser chamado:", action.payload)
 
       state.loadingSession = false
 

@@ -14,6 +14,11 @@ export default function AppRoutes() {
 
     const { isAuthenticated, loadingSession } = useSelector((state) => state.auth)
 
+    console.log("🔐 AUTH STATE:", {
+      isAuthenticated,
+      loadingSession
+    })
+
     if (loadingSession) {
       return <div>Carregando sessão...</div>
     }
