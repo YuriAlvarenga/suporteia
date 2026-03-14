@@ -54,9 +54,9 @@ export default function SignUp() {
     if (users.length === 0) {
       dispatch(fetchProfiles())
     }
-  }, [])
+  }, [dispatch])
 
-  
+
   // Limpar mensagens de erro/sucesso após 4 segundos
   useEffect(() => {
     if (success || error) {

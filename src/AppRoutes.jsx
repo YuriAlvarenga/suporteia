@@ -10,13 +10,13 @@ import SignUp from "./components/auth/sign-up"
 
 export default function AppRoutes() {
 
-  const { isAuthenticated, loadingSession } = useSelector((state) => state.auth)
+  function Private({ children }) {
 
-  const Private = ({ children }) => {
+    const { isAuthenticated, loadingSession } = useSelector((state) => state.auth)
 
     if (loadingSession) {
-    return <div>Carregando sessão...</div>
-  }
+      return <div>Carregando sessão...</div>
+    }
 
     if (!isAuthenticated) {
       return <Navigate to="/sign-in" replace />

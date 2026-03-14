@@ -9,7 +9,7 @@ export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async ({ email, password }, { rejectWithValue }) => {
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password
     })
@@ -18,24 +18,7 @@ export const loginUser = createAsyncThunk(
       return rejectWithValue(error.message)
     }
 
-    const user = data.user
-
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("full_name, role, email")
-      .eq("id", user.id)
-      .single()
-
-    if (profileError) {
-      return rejectWithValue(profileError.message)
-    }
-
-    return {
-      id: user.id,
-      email: user.email,
-      fullName: profile.full_name,
-      role: profile.role
-    }
+    return true
   }
 )
 
@@ -58,22 +41,15 @@ export const logoutUser = createAsyncThunk(
 )
 
 /* ================================
-   LOCAL STORAGE
-================================ */
-
-const storedUser = localStorage.getItem("authUser")
-const parsedUser = storedUser ? JSON.parse(storedUser) : null
-
-/* ================================
    INITIAL STATE
 ================================ */
 
 const initialState = {
   loading: false,
   loadingSession: true,
-  user: parsedUser,
-  role: parsedUser?.role || null,
-  isAuthenticated: !!parsedUser,
+  user: null,
+  role: null,
+  isAuthenticated: false,
   error: null
 }
 
@@ -93,7 +69,6 @@ const authSlice = createSlice({
 
     setUser(state, action) {
 
-      // sessão terminou de carregar
       state.loadingSession = false
 
       if (action.payload) {
@@ -102,18 +77,11 @@ const authSlice = createSlice({
         state.role = action.payload.role
         state.isAuthenticated = true
 
-        localStorage.setItem(
-          "authUser",
-          JSON.stringify(action.payload)
-        )
-
       } else {
 
         state.user = null
         state.role = null
         state.isAuthenticated = false
-
-        localStorage.removeItem("authUser")
 
       }
     }
@@ -123,24 +91,13 @@ const authSlice = createSlice({
 
     builder
 
-      /* LOGIN */
-
       .addCase(loginUser.pending, (state) => {
         state.loading = true
         state.error = null
       })
 
-      .addCase(loginUser.fulfilled, (state, action) => {
-
+      .addCase(loginUser.fulfilled, (state) => {
         state.loading = false
-        state.user = action.payload
-        state.role = action.payload.role
-        state.isAuthenticated = true
-
-        localStorage.setItem(
-          "authUser",
-          JSON.stringify(action.payload)
-        )
       })
 
       .addCase(loginUser.rejected, (state, action) => {
@@ -148,16 +105,12 @@ const authSlice = createSlice({
         state.error = action.payload
       })
 
-      /* LOGOUT */
-
       .addCase(logoutUser.fulfilled, (state) => {
 
         state.user = null
         state.role = null
         state.isAuthenticated = false
         state.error = null
-
-        localStorage.removeItem("authUser")
       })
   }
 })

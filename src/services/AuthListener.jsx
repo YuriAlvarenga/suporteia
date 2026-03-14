@@ -3,7 +3,6 @@ import { supabase } from "../services/supabase"
 import { useDispatch } from "react-redux"
 import { setUser } from "../redux/slice/auth/auth-login-slice"
 
-
 export default function AuthListener() {
 
   const dispatch = useDispatch()
@@ -12,44 +11,42 @@ export default function AuthListener() {
 
     console.log("AuthListener iniciado")
 
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+    const { data: { subscription } } =
+      supabase.auth.onAuthStateChange(
+        async (event, session) => {
 
-        console.log("EVENTO AUTH:", event)
-        console.log("SESSION:", session)
+          console.log("EVENTO AUTH:", event)
 
-        if (!session) {
-          dispatch(setUser(null))
-          return
+          if (!session) {
+            dispatch(setUser(null))
+            return
+          }
+
+          // Só buscar profile quando necessário
+          if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+
+            const user = session.user
+
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("full_name, role, email")
+              .eq("id", user.id)
+              .single()
+
+            dispatch(
+              setUser({
+                id: user.id,
+                email: user.email,
+                fullName: profile?.full_name,
+                role: profile?.role
+              })
+            )
+          }
         }
-
-        const user = session.user
-
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("full_name, role, email")
-          .eq("id", user.id)
-          .single()
-
-        console.log("PROFILE:", profile)
-        console.log("PROFILE ERROR:", error)
-
-        if (profile) {
-
-          dispatch(
-            setUser({
-              id: user.id,
-              email: user.email,
-              fullName: profile.full_name,
-              role: profile.role
-            })
-          )
-        }
-      }
-    )
+      )
 
     return () => {
-      listener.subscription.unsubscribe()
+      subscription.unsubscribe()
     }
 
   }, [dispatch])
