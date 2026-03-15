@@ -5,37 +5,22 @@ import { supabase } from "../../../services/supabase"
    LOGIN
 ================================ */
 
+/* ================================
+   LOGIN (Simplificado)
+================================ */
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async ({ email, password }, { rejectWithValue }) => {
-
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     })
 
-    if (error) {
-      return rejectWithValue(error.message)
-    }
+    if (error) return rejectWithValue(error.message);
 
-    const user = data.user
-
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("full_name, role, email")
-      .eq("id", user.id)
-      .single()
-
-    if (profileError) {
-      return rejectWithValue(profileError.message)
-    }
-
-    return {
-      id: user.id,
-      email: user.email,
-      fullName: profile.full_name,
-      role: profile.role
-    }
+    // ✅ Não precisa buscar o perfil aqui! 
+    // O AuthListener vai detectar o login e fazer isso por você.
+    return null;
   }
 )
 
@@ -63,7 +48,7 @@ export const logoutUser = createAsyncThunk(
 
 const initialState = {
   loading: false,
-  loadingSession: false,
+  loadingSession: true,
   user: null,
   role: null,
   isAuthenticated: false,
@@ -86,7 +71,7 @@ const authSlice = createSlice({
     setUser(state, action) {
       state.loadingSession = false;
       const user = action.payload;
-      
+
       state.user = user || null;
       state.role = user?.role || null;
       state.isAuthenticated = !!user;
@@ -103,15 +88,12 @@ const authSlice = createSlice({
         state.loading = true
         state.error = null
       })
-
-      .addCase(loginUser.fulfilled, (state, action) => {
-
+      .addCase(loginUser.fulfilled, (state) => {
+        // ✅ Apenas paramos o loading do botão. 
+        // Não mexemos no state.user aqui, 
+        // deixamos o AuthListener/setUser cuidar disso.
         state.loading = false
-        state.user = action.payload
-        state.role = action.payload.role
-        state.isAuthenticated = true
       })
-
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload

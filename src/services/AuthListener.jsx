@@ -36,25 +36,21 @@ export default function AuthListener() {
       )
     }
 
-    const { data: { subscription } } =
-      supabase.auth.onAuthStateChange(async (event, session) => {
+    // Dentro do useEffect do AuthListener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("🔥 EVENTO AUTH:", event);
 
-        console.log("🔥 EVENTO AUTH:", event)
-
-        if (event === "SIGNED_OUT") {
-
-          dispatch(setUser(null))
-          return
-
+      if (session) {
+        // SÓ carregar se o evento for de login ou se o token mudou
+        // Isso evita disparar loadProfile em re-renders desnecessários
+        if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+          await loadProfile(session);
         }
-
-        if (session) {
-
-          await loadProfile(session)
-
-        }
-
-      })
+      } else {
+        // Se não tem sessão (ou SIGNED_OUT), limpa o estado e desliga o loading
+        dispatch(setUser(null));
+      }
+    });
 
     return () => {
       console.log("🧹 Limpando AuthListener")
