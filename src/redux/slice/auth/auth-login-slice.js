@@ -63,10 +63,10 @@ export const logoutUser = createAsyncThunk(
 
 const initialState = {
   loading: false,
-  loadingSession: true,
+  loadingSession: false,
   user: null,
   role: null,
-  isAuthenticated: false,
+  isAuthenticated: !!action.payload,
   error: null
 }
 
@@ -91,11 +91,11 @@ const authSlice = createSlice({
       if (action.payload) {
         state.user = action.payload
         state.role = action.payload.role
-        state.isAuthenticated = true
+        state.isAuthenticated = !!action.payload
       } else {
         state.user = null
         state.role = null
-        state.isAuthenticated = false
+        state.isAuthenticated = !!action.payload
       }
     }
   },
