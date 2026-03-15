@@ -66,7 +66,7 @@ const initialState = {
   loadingSession: false,
   user: null,
   role: null,
-  isAuthenticated: !!action.payload,
+  isAuthenticated: false,
   error: null
 }
 
@@ -79,24 +79,17 @@ const authSlice = createSlice({
   initialState,
 
   reducers: {
-
     clearError(state) {
-      state.error = null
+      state.error = null;
     },
 
     setUser(state, action) {
-
-      state.loadingSession = false
-
-      if (action.payload) {
-        state.user = action.payload
-        state.role = action.payload.role
-        state.isAuthenticated = !!action.payload
-      } else {
-        state.user = null
-        state.role = null
-        state.isAuthenticated = !!action.payload
-      }
+      state.loadingSession = false;
+      const user = action.payload;
+      
+      state.user = user || null;
+      state.role = user?.role || null;
+      state.isAuthenticated = !!user;
     }
   },
 
