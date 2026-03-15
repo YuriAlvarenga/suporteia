@@ -6,7 +6,6 @@ import { setUser } from "../redux/slice/auth/auth-login-slice"
 export default function AuthListener() {
   const dispatch = useDispatch()
   
-  // ✅ CORRETO: Hooks sempre aqui no topo
   const { isAuthenticated } = useSelector((state) => state.auth)
   const isProcessing = useRef(false)
 
@@ -16,7 +15,6 @@ export default function AuthListener() {
       isProcessing.current = true
 
       try {
-        console.log("👤 Carregando profile (F5 ou Sessão Recuperada):", session.user.id)
         const { data: profile, error } = await supabase
           .from("profiles")
           .select("full_name, role, email")
@@ -32,7 +30,6 @@ export default function AuthListener() {
           role: profile?.role
         }))
       } catch (err) {
-        console.error("Erro no AuthListener:", err)
         dispatch(setUser(null))
       } finally {
         isProcessing.current = false
@@ -40,11 +37,8 @@ export default function AuthListener() {
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("🔥 EVENTO AUTH:", event)
 
       if (session) {
-        // ✅ Se o botão de Login já preencheu o Redux, o isAuthenticated será true.
-        // O Listener vai ver isso e NÃO vai rodar o loadProfile, evitando o conflito.
         if (!isAuthenticated) {
           loadProfile(session)
         }
@@ -56,7 +50,6 @@ export default function AuthListener() {
 
     return () => subscription.unsubscribe()
     
-    // ✅ Adicionamos o isAuthenticated aqui para o useEffect "saber" quando ele mudar
   }, [dispatch, isAuthenticated]) 
 
   return null

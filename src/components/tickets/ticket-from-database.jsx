@@ -49,7 +49,6 @@ export default function Tickets() {
         "OU. Outros", "Cri.Encerramento+24h", "SOL. Inadimplência"
     ]
 
-    // ✅ ESTADO PARA O AVISO DE CÓPIA
     const [copySuccess, setCopySuccess] = useState(false)
 
     useEffect(() => {

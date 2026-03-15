@@ -15,7 +15,6 @@ export const fetchProfiles = createAsyncThunk(
       .order("full_name", { ascending: true })
 
     if (error) {
-      console.error("❌ Erro fetchProfiles:", error)
       return rejectWithValue(error.message)
     }
 
@@ -42,7 +41,6 @@ export const createNewUser = createAsyncThunk(
     })
 
     if (authError) {
-      console.error("❌ Erro auth:", authError)
       return rejectWithValue(authError.message)
     }
 
@@ -113,7 +111,6 @@ export const deleteProfile = createAsyncThunk(
       .eq("id", id)
 
     if (error) {
-      console.error("❌ Erro delete:", error)
       return rejectWithValue(error.message)
     }
 

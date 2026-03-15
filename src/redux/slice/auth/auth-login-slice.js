@@ -11,7 +11,7 @@ export const loginUser = createAsyncThunk(
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
-    });
+    })
 
     if (error) return rejectWithValue(error.message);
 
@@ -20,7 +20,7 @@ export const loginUser = createAsyncThunk(
       .from("profiles")
       .select("full_name, role, email")
       .eq("id", data.user.id)
-      .single();
+      .single()
 
     if (profileError) return rejectWithValue(profileError.message);
 
@@ -29,9 +29,9 @@ export const loginUser = createAsyncThunk(
       email: data.user.email,
       fullName: profile.full_name,
       role: profile.role
-    };
+    }
   }
-);
+)
 
 /* ================================
    LOGOUT
@@ -74,16 +74,16 @@ const authSlice = createSlice({
 
   reducers: {
     clearError(state) {
-      state.error = null;
+      state.error = null
     },
 
     setUser(state, action) {
-      state.loadingSession = false;
-      const user = action.payload;
+      state.loadingSession = false
+      const user = action.payload
 
-      state.user = user || null;
-      state.role = user?.role || null;
-      state.isAuthenticated = !!user;
+      state.user = user || null
+      state.role = user?.role || null
+      state.isAuthenticated = !!user
     }
   },
 
@@ -92,18 +92,27 @@ const authSlice = createSlice({
     builder
 
       /* LOGIN */
+      // 1. ISSO faz o botão mostrar "Entrando"
+      .addCase(loginUser.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
 
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload; // Agora o payload tem os dados!
-        state.role = action.payload.role;
-        state.isAuthenticated = true;
-        state.loadingSession = false; // Libera a rota imediatamente
+        state.user = action.payload
+        state.role = action.payload.role
+        state.isAuthenticated = true
+        state.loadingSession = false
+      })
+
+      .addCase(loginUser.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload
+
       })
       /* LOGOUT */
-
       .addCase(logoutUser.fulfilled, (state) => {
-
         state.user = null
         state.role = null
         state.isAuthenticated = false
