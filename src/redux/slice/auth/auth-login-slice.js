@@ -5,24 +5,33 @@ import { supabase } from "../../../services/supabase"
    LOGIN
 ================================ */
 
-/* ================================
-   LOGIN (Simplificado)
-================================ */
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async ({ email, password }, { rejectWithValue }) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
-    })
+    });
 
     if (error) return rejectWithValue(error.message);
 
-    // ✅ Não precisa buscar o perfil aqui! 
-    // O AuthListener vai detectar o login e fazer isso por você.
-    return null;
+    // 💡 Buscamos o perfil aqui para o login ser INSTANTÂNEO
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("full_name, role, email")
+      .eq("id", data.user.id)
+      .single();
+
+    if (profileError) return rejectWithValue(profileError.message);
+
+    return {
+      id: data.user.id,
+      email: data.user.email,
+      fullName: profile.full_name,
+      role: profile.role
+    };
   }
-)
+);
 
 /* ================================
    LOGOUT
@@ -84,21 +93,13 @@ const authSlice = createSlice({
 
       /* LOGIN */
 
-      .addCase(loginUser.pending, (state) => {
-        state.loading = true
-        state.error = null
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload; // Agora o payload tem os dados!
+        state.role = action.payload.role;
+        state.isAuthenticated = true;
+        state.loadingSession = false; // Libera a rota imediatamente
       })
-      .addCase(loginUser.fulfilled, (state) => {
-        // ✅ Apenas paramos o loading do botão. 
-        // Não mexemos no state.user aqui, 
-        // deixamos o AuthListener/setUser cuidar disso.
-        state.loading = false
-      })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.loading = false
-        state.error = action.payload
-      })
-
       /* LOGOUT */
 
       .addCase(logoutUser.fulfilled, (state) => {
