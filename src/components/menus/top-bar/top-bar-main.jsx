@@ -58,8 +58,6 @@ export default function TopBarLogout() {
 
       await dispatch(logoutUser()).unwrap()
 
-      localStorage.removeItem('activeMenuItem')
-
       navigate('/sign-in')
 
     } catch (err) {

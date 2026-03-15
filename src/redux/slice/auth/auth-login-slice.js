@@ -58,23 +58,15 @@ export const logoutUser = createAsyncThunk(
 )
 
 /* ================================
-   LOCAL STORAGE
-================================ */
-
-const storedUser = localStorage.getItem("authUser")
-
-const parsedUser = storedUser ? JSON.parse(storedUser) : null
-
-/* ================================
    INITIAL STATE
 ================================ */
 
 const initialState = {
   loading: false,
-  loadingSession: true, // ← importante
-  user: parsedUser,
-  role: parsedUser?.role || null,
-  isAuthenticated: !!parsedUser,
+  loadingSession: true,
+  user: null,
+  role: null,
+  isAuthenticated: false,
   error: null
 }
 
@@ -97,24 +89,13 @@ const authSlice = createSlice({
       state.loadingSession = false
 
       if (action.payload) {
-
         state.user = action.payload
         state.role = action.payload.role
         state.isAuthenticated = true
-
-        localStorage.setItem(
-          "authUser",
-          JSON.stringify(action.payload)
-        )
-
       } else {
-
         state.user = null
         state.role = null
         state.isAuthenticated = false
-
-        localStorage.removeItem("authUser")
-
       }
     }
   },
@@ -136,11 +117,6 @@ const authSlice = createSlice({
         state.user = action.payload
         state.role = action.payload.role
         state.isAuthenticated = true
-
-        localStorage.setItem(
-          "authUser",
-          JSON.stringify(action.payload)
-        )
       })
 
       .addCase(loginUser.rejected, (state, action) => {
@@ -156,8 +132,6 @@ const authSlice = createSlice({
         state.role = null
         state.isAuthenticated = false
         state.error = null
-
-        localStorage.removeItem("authUser")
       })
   }
 })

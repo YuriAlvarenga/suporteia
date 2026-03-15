@@ -71,7 +71,7 @@ export const createNewUser = createAsyncThunk(
 ====================================================== */
 export const updateProfile = createAsyncThunk(
   "users/updateProfile",
-  async ({ id, full_name, role }, { rejectWithValue, dispatch }) => {
+  async ({ id, full_name, role }, { rejectWithValue, dispatch, getState }) => {
 
     const { error } = await supabase
       .from("profiles")
@@ -79,11 +79,24 @@ export const updateProfile = createAsyncThunk(
       .eq("id", id)
 
     if (error) {
-      console.error("❌ Erro update:", error)
       return rejectWithValue(error.message)
     }
 
+    // pega usuário logado
+    const currentUser = getState().auth.user
+
+    if (currentUser?.id === id) {
+
+      dispatch(setUser({
+        ...currentUser,
+        fullName: full_name,
+        role: role
+      }))
+
+    }
+
     await dispatch(fetchProfiles())
+
     return true
   }
 )
