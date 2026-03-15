@@ -1,62 +1,52 @@
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { supabase } from "../services/supabase"
 import { useDispatch } from "react-redux"
 import { setUser } from "../redux/slice/auth/auth-login-slice"
 
 export default function AuthListener() {
-
   const dispatch = useDispatch()
+  const isProcessing = useRef(false) // Trava para evitar processamento duplo simultâneo
 
   useEffect(() => {
-
-    console.log("🚀 AuthListener iniciado")
-
     async function loadProfile(session) {
+      if (isProcessing.current) return;
+      isProcessing.current = true;
 
-      console.log("👤 Carregando profile:", session.user.id)
+      try {
+        console.log("👤 Carregando profile:", session.user.id)
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("full_name, role, email")
+          .eq("id", session.user.id)
+          .single()
 
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("full_name, role, email")
-        .eq("id", session.user.id)
-        .single()
+        if (error) throw error;
 
-      if (error) {
-        dispatch(setUser(null))
-        return
-      }
-
-      dispatch(
-        setUser({
+        dispatch(setUser({
           id: session.user.id,
           email: session.user.email,
           fullName: profile?.full_name,
           role: profile?.role
-        })
-      )
-    }
-
-    // Dentro do useEffect do AuthListener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("🔥 EVENTO AUTH:", event);
-
-      if (session) {
-        // SÓ carregar se o evento for de login ou se o token mudou
-        // Isso evita disparar loadProfile em re-renders desnecessários
-        if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
-          await loadProfile(session);
-        }
-      } else {
-        // Se não tem sessão (ou SIGNED_OUT), limpa o estado e desliga o loading
-        dispatch(setUser(null));
+        }))
+      } catch (err) {
+        console.error("Erro no AuthListener:", err)
+        dispatch(setUser(null)) // Isso garante que o loadingSession vire false mesmo em erro
+      } finally {
+        isProcessing.current = false;
       }
-    });
-
-    return () => {
-      console.log("🧹 Limpando AuthListener")
-      subscription.unsubscribe()
     }
 
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("🔥 EVENTO AUTH:", event)
+      
+      if (session) {
+        loadProfile(session)
+      } else {
+        dispatch(setUser(null))
+      }
+    })
+
+    return () => subscription.unsubscribe()
   }, [dispatch])
 
   return null
