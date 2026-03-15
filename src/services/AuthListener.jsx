@@ -11,29 +11,6 @@ export default function AuthListener() {
 
     console.log("🚀 AuthListener iniciado")
 
-    async function checkInitialSession() {
-
-      console.log("🔎 Verificando sessão inicial...")
-
-      const { data, error } = await supabase.auth.getSession()
-
-      console.log("📦 getSession RESULT:", data)
-      console.log("❌ getSession ERROR:", error)
-
-      if (data?.session) {
-
-        console.log("✅ Sessão inicial encontrada")
-
-        await loadProfile(data.session)
-
-      } else {
-
-        console.log("⚠️ Nenhuma sessão inicial")
-        dispatch(setUser(null))
-
-      }
-    }
-
     async function loadProfile(session) {
 
       console.log("👤 Carregando profile:", session.user.id)
@@ -43,9 +20,6 @@ export default function AuthListener() {
         .select("full_name, role, email")
         .eq("id", session.user.id)
         .single()
-
-      console.log("📦 PROFILE RESULT:", profile)
-      console.log("❌ PROFILE ERROR:", error)
 
       if (error) {
         dispatch(setUser(null))
@@ -62,23 +36,23 @@ export default function AuthListener() {
       )
     }
 
-    checkInitialSession()
-
     const { data: { subscription } } =
       supabase.auth.onAuthStateChange(async (event, session) => {
 
         console.log("🔥 EVENTO AUTH:", event)
-        console.log("📦 SESSION:", session)
 
-        if (!session) {
+        if (event === "SIGNED_OUT") {
 
-          console.log("🚪 Usuário deslogado")
           dispatch(setUser(null))
           return
 
         }
 
-        await loadProfile(session)
+        if (session) {
+
+          await loadProfile(session)
+
+        }
 
       })
 
