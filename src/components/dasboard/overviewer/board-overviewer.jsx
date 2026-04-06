@@ -11,7 +11,7 @@ import CreateAlertModal from './create-alert-modal'
 
 export default function DashboardTickets() {
     const { companies } = useSelector((state) => state.companies)
-    
+
     const [openFilters, setOpenFilters] = useState(false)
     const [openAlertModal, setOpenAlertModal] = useState(false)
     const [showAlertPanel, setShowAlertPanel] = useState(false)
@@ -57,18 +57,18 @@ export default function DashboardTickets() {
                                 </Typography>
                                 <Stack direction="row" spacing={1}>
                                     <Tooltip title="Criar Alerta de Loja">
-                                        <IconButton 
-                                            size="small" 
-                                            onClick={() => setShowAlertPanel(!showAlertPanel)} 
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => setShowAlertPanel(!showAlertPanel)}
                                             sx={{ color: showAlertPanel ? 'var(--color-highlight)' : '#1976d2' }}
                                         >
                                             <AddAlertIcon fontSize="small" />
                                         </IconButton>
                                     </Tooltip>
                                     <Tooltip title={openFilters ? "Fechar Filtros" : "Abrir Filtros"}>
-                                        <IconButton 
-                                            size="small" 
-                                            onClick={() => setOpenFilters(!openFilters)} 
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => setOpenFilters(!openFilters)}
                                             sx={{ color: openFilters ? 'var(--color-highlight)' : '#1976d2' }}
                                         >
                                             {openFilters ? <FilterListOffIcon fontSize="small" /> : <FilterListIcon fontSize="small" />}
@@ -95,7 +95,7 @@ export default function DashboardTickets() {
                             height: '100%',
                             display: 'flex',
                             flexDirection: 'column',
-                            maxHeight: 'calc(100vh - 100px)', 
+                            maxHeight: 'calc(100vh - 100px)',
                             overflow: 'hidden'
                         }}
                     >
@@ -104,7 +104,7 @@ export default function DashboardTickets() {
                                 <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
                                     Classificação de erros por tag
                                 </Typography>
-                                
+
                                 <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
                                     <Select
                                         value={tagGroup}
@@ -114,7 +114,9 @@ export default function DashboardTickets() {
                                     >
                                         <MenuItem value="todos" sx={{ fontSize: '0.7rem' }}>Todos Grupos</MenuItem>
                                         {companies.map(c => (
-                                            <MenuItem key={c.id} value={c.name} sx={{ fontSize: '0.7rem' }}>{c.name}</MenuItem>
+                                            <MenuItem key={c.id} value={c.name} sx={{ fontSize: '0.7rem' }}>
+                                                {c.name.toUpperCase()}
+                                            </MenuItem>
                                         ))}
                                     </Select>
 
@@ -134,8 +136,8 @@ export default function DashboardTickets() {
                                 </Stack>
                             </Stack>
                         </Box>
-                        <Box sx={{ 
-                            flexGrow: 1, 
+                        <Box sx={{
+                            flexGrow: 1,
                             overflowY: 'auto',
                             scrollbarWidth: 'none',
                             '&::-webkit-scrollbar': { display: 'none' }

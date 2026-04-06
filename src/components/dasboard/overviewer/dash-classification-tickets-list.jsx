@@ -5,46 +5,59 @@ import { Box, Typography, Stack, LinearProgress } from '@mui/material'
 export default function TicketClassificationList({ range, group }) {
     const { tickets } = useSelector((state) => state.tickets)
 
-    const { dataTags, maxTags, totalTicketsPeriodo } = useMemo(() => {
-        if (!tickets) return { dataTags: [], maxTags: 0, totalTicketsPeriodo: 0 }
+    const dataTags = useMemo(() => {
+        if (!tickets) return []
 
         const agora = new Date()
         const limiteData = new Date()
         limiteData.setDate(agora.getDate() - range)
 
-        const porTag = {}
-        let totalCount = 0
+        // 1. Criamos um mapa para armazenar o TOTAL GLOBAL de cada tag e o TOTAL DA LOJA selecionada
+        const contagemGlobal = {} // { 'ERRO PAGAMENTO': 8, ... }
+        const contagemLoja = {}   // { 'ERRO PAGAMENTO': 3, ... }
 
         tickets.forEach(t => {
             const dataTicket = new Date(t.created_at)
+            if (dataTicket < limiteData || !t.classificacao) return
+
+            const nomeTag = t.classificacao.toUpperCase()
             
-            // Filtro de Tempo
-            const dentroDoTempo = dataTicket >= limiteData
-            
-            // Filtro de Grupo
+            // Incrementa sempre no Global (todas as lojas do período)
+            contagemGlobal[nomeTag] = (contagemGlobal[nomeTag] || 0) + 1
+
+            // Se o ticket for da loja selecionada, incrementa no mapa da loja
             const empresaRaw = t.cliente || ''
             const nomeEmpresa = empresaRaw.includes(' - ') ? empresaRaw.split(' - ')[0] : empresaRaw
-            const correspondeGrupo = group === 'todos' || nomeEmpresa.toLowerCase() === group.toLowerCase()
-
-            if (t.classificacao && dentroDoTempo && correspondeGrupo) {
-                const nomeTag = t.classificacao.toUpperCase()
-                porTag[nomeTag] = (porTag[nomeTag] || 0) + 1
-                totalCount++
+            
+            if (group !== 'todos' && nomeEmpresa.toLowerCase() === group.toLowerCase()) {
+                contagemLoja[nomeTag] = (contagemLoja[nomeTag] || 0) + 1
             }
         })
 
-        const sortedTags = Object.keys(porTag)
-            .map(name => ({ 
-                name, 
-                total: porTag[name],
-                // Porcentagem em relação ao total do período/filtro
-                percent: totalCount > 0 ? ((porTag[name] / totalCount) * 100).toFixed(1) : 0
-            }))
-            .sort((a, b) => b.total - a.total)
+        // 2. Formatamos os dados para exibição
+        // Se estiver em "todos", usamos a contagem global. Se não, usamos a da loja.
+        const fonteDeDados = group === 'todos' ? contagemGlobal : contagemLoja
 
-        const max = sortedTags.length > 0 ? Math.max(...sortedTags.map(o => o.total)) : 0
+        return Object.keys(fonteDeDados)
+            .map(name => {
+                const totalNaLoja = fonteDeDados[name]
+                const totalGeralDaTag = contagemGlobal[name]
+                
+                // Regra pedida: Porcentagem do grupo em relação ao total daquela tag
+                const calculoPercent = group === 'todos' 
+                    ? 100 
+                    : (totalGeralDaTag > 0 ? (totalNaLoja / totalGeralDaTag) * 100 : 0)
+
+                return { 
+                    name, 
+                    total: totalNaLoja,
+                    totalGeralTag: totalGeralDaTag, // Guardamos para referência se precisar
+                    percentExibicao: calculoPercent.toFixed(1),
+                    barraValue: calculoPercent
+                }
+            })
+            .sort((a, b) => b.total - a.total)
         
-        return { dataTags: sortedTags, maxTags: max, totalTicketsPeriodo: totalCount }
     }, [tickets, range, group])
 
     return (
@@ -57,9 +70,11 @@ export default function TicketClassificationList({ range, group }) {
                                 <Typography sx={{ fontSize: '0.65rem', fontWeight: 'bold', color: '#444', textTransform: 'uppercase' }}>
                                     {tag.name}
                                 </Typography>
-                                {/* Exibição da Porcentagem */}
                                 <Typography sx={{ fontSize: '0.6rem', color: 'gray' }}>
-                                    {tag.percent}% do total
+                                    {group === 'todos' 
+                                        ? '100% da tag' 
+                                        : `${tag.percentExibicao}% do total de ${tag.totalGeralTag} ocorrências`
+                                    }
                                 </Typography>
                             </Box>
                             <Typography sx={{ fontSize: '0.75rem', fontWeight: '900', color: 'var(--color-highlight)' }}>
@@ -68,7 +83,7 @@ export default function TicketClassificationList({ range, group }) {
                         </Stack>
                         <LinearProgress
                             variant="determinate"
-                            value={maxTags > 0 ? (tag.total / maxTags) * 100 : 0}
+                            value={tag.barraValue}
                             sx={{
                                 height: 8, borderRadius: 5, bgcolor: '#eee',
                                 '& .MuiLinearProgress-bar': {
