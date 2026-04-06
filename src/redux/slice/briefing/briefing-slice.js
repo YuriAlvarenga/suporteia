@@ -5,8 +5,9 @@ import { supabase } from '../../../services/supabase'
 export const fetchAvisos = createAsyncThunk('avisos/fetchAvisos', async () => {
   const { data, error } = await supabase
     .from('avisos')
-    .select('*')
+    .select(` *, profiles ( full_name) `) 
     .order('created_at', { ascending: false })
+    
   if (error) throw error
   return data
 })

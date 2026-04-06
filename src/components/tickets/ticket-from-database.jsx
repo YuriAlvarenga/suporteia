@@ -11,7 +11,12 @@ import ClassificationModal from './tickets-classification-modal'
 
 const normalizeName = (name) => {
     if (!name) return ''
-    return name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "").trim()
+    return name
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s.]/g, "") // Agora permite espaços e pontos para a classificação
+        .trim()
 }
 
 const capitalizeName = (name) => {
@@ -68,18 +73,32 @@ export default function Tickets() {
         }
     }, [ticketsDaEmpresa, setCounts])
 
+
     const filteredTickets = React.useMemo(() => {
         const statusAlvo = tabValue === 0 ? "em atendimento" : "finalizado"
+
         return ticketsDaEmpresa.filter(t => {
             const matchStatus = t.status?.toLowerCase().trim() === statusAlvo
+
             if (!searchTerm || searchTerm.trim() === "") return matchStatus
+
             const searchNormalized = normalizeName(searchTerm)
             const totemString = Array.isArray(t.totem) ? t.totem.join(' ') : (t.totem || '').toString()
-            const matchSearch = normalizeName(t.ticket?.toString()).includes(searchNormalized) ||
+
+            // Campos básicos
+            const matchGeneral =
+                normalizeName(t.ticket?.toString()).includes(searchNormalized) ||
                 normalizeName(t.cliente).includes(searchNormalized) ||
                 normalizeName(t.cnpj).includes(searchNormalized) ||
                 normalizeName(totemString).includes(searchNormalized)
-            return matchStatus && matchSearch
+
+            // Busca na classificação (específico para tickets encerrados)
+            // Adicionamos um fallback de string vazia para segurança
+            const matchClassificacao = t.classificacao
+                ? normalizeName(t.classificacao).includes(searchNormalized)
+                : false
+
+            return matchStatus && (matchGeneral || matchClassificacao)
         })
     }, [ticketsDaEmpresa, tabValue, searchTerm])
 
@@ -119,7 +138,8 @@ export default function Tickets() {
             ? selectedTicket.totem.join(', ')
             : selectedTicket.totem?.replace(/[\[\]"]/g, '')
 
-        const textToCopy = `*NOME FANTASIA:* ${capitalizeName(selectedTicket.cliente)}
+        const textToCopy =
+            `*NOME FANTASIA:* ${capitalizeName(selectedTicket.cliente)}
             *CNPJ:* ${selectedTicket.cnpj}
             *TOTEM:* ${totemFormatado}
             *MOTIVO:* ${selectedTicket.mensagem || 'Não informado'}`

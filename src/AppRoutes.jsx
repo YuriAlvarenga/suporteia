@@ -7,17 +7,13 @@ import Home from "./pages/home"
 import BoardBriefing from "./components/dasboard/briefing/board-briefing"
 import Tickets from "./components/tickets/ticket-from-database"
 import SignUp from "./components/auth/sign-up"
+import BoardOverviewer from "./components/dasboard/overviewer/board-overviewer"
 
 export default function AppRoutes() {
 
   function Private({ children }) {
 
     const { isAuthenticated, loadingSession } = useSelector((state) => state.auth)
-
-    console.log("🔐 AUTH STATE:", {
-      isAuthenticated,
-      loadingSession
-    })
 
     if (loadingSession) {
       return <div>Carregando sessão...</div>
@@ -37,6 +33,7 @@ export default function AppRoutes() {
         <Route path="/sign-in" element={<SignIn />} />
 
         <Route path="/*" element={<Private><Home /></Private>} >
+          <Route index element={<BoardOverviewer/>} />
 
           <Route path="board-briefing" element={<BoardBriefing />} />
 

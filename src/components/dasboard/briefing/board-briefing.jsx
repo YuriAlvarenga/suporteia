@@ -43,6 +43,7 @@ export default function BoardBriefing() {
 
     const dispatch = useDispatch()
     const { avisos, loading } = useSelector((state) => state.avisos)
+    const { user } = useSelector((state) => state.auth)
 
     const [open, setOpen] = useState(false)
     const [novoAviso, setNovoAviso] = useState({ titulo: '', conteudo: '' })
@@ -69,21 +70,22 @@ export default function BoardBriefing() {
 
 
     const handleAdd = async () => {
+    if (!novoAviso.titulo.trim() || !novoAviso.conteudo.trim()) return
 
-        if (!novoAviso.titulo.trim() || !novoAviso.conteudo.trim()) return
-
-        try {
-
-            await dispatch(addAviso(novoAviso)).unwrap()
-
-            handleClose()
-
-        } catch (error) {
-
-            console.error("Erro ao criar aviso:", error)
-
+    try {
+        const dadosCompletos = {
+            ...novoAviso,
+            // Enviamos o ID (UUID) que o banco espera, não o e-mail
+            created_by: user?.id, 
+            cor: '#ffffff'
         }
+
+        await dispatch(addAviso(dadosCompletos)).unwrap()
+        handleClose()
+    } catch (error) {
+        console.error("Erro ao criar aviso:", error)
     }
+}
 
 
     const handleDeleteClick = (id) => {
@@ -189,13 +191,32 @@ export default function BoardBriefing() {
                                     </Typography>
 
 
-                                    <Typography
-                                        variant="caption"
-                                        color="text.secondary"
-                                        sx={{ display: 'block', mb: 1 }}
+                                    <Stack
+                                        direction="row"
+                                        justifyContent="space-between"
+                                        alignItems="center"
+                                        sx={{ mb: 1 }}
                                     >
-                                        {new Date(aviso.created_at).toLocaleDateString('pt-BR')}
-                                    </Typography>
+                                        {/* Lado Esquerdo: Data */}
+                                        <Typography variant="caption" color="text.secondary">
+                                            {new Date(aviso.created_at).toLocaleDateString('pt-BR')}
+                                        </Typography>
+
+                                        {/* Lado Direito: Nome do Usuário */}
+                                        <Typography
+                                            variant="caption"
+                                            sx={{
+                                                fontWeight: 'bold',
+                                                color: 'primary.main',
+                                                bgcolor: '#d32f2f',
+                                                color: 'white',
+                                                px: 1,
+                                                borderRadius: 1
+                                            }}
+                                        >
+                                            {aviso.profiles?.full_name || 'Sistema'}
+                                        </Typography>
+                                    </Stack>
 
 
                                     <Divider sx={{ mb: 1.5 }} />
@@ -336,7 +357,7 @@ export default function BoardBriefing() {
                                     variant="contained"
                                     onClick={handleAdd}
                                     disabled={!novoAviso.titulo.trim() || !novoAviso.conteudo.trim()}
-                                    sx={{ bgcolor: 'var(--color-highlight)', '&:disabled': { bgcolor: 'rgba(0, 0, 0, 0.12)'}}}
+                                    sx={{ bgcolor: 'var(--color-highlight)', '&:disabled': { bgcolor: 'rgba(0, 0, 0, 0.12)' } }}
                                 >
                                     Publicar Aviso
                                 </Button>
