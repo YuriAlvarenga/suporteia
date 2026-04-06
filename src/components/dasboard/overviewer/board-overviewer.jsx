@@ -125,11 +125,31 @@ export default function DashboardTickets() {
                                         exclusive
                                         onChange={(e, val) => val && setTagRange(val)}
                                         size="small"
-                                        sx={{ height: 25 }}
+                                        sx={{
+                                            height: 28,
+                                            '& .MuiToggleButton-root': {
+                                                fontSize: '0.65rem',
+                                                px: 1.5,
+                                                py: 0,
+                                                fontWeight: 'bold',
+                                                border: '1px solid #eee',
+                                                color: '#666', // Cor da fonte quando não selecionado
+                                                transition: 'all 0.3s',
+                                                // Estilo quando selecionado
+                                                '&.Mui-selected': {
+                                                    backgroundColor: 'var(--color-highlight)',
+                                                    color: 'var(--color-white)',
+                                                    '&:hover': {
+                                                        backgroundColor: 'var(--color-highlight)',
+                                                        opacity: 0.9
+                                                    }
+                                                }
+                                            }
+                                        }}
                                     >
                                         {[7, 15, 20, 45, 90].map(d => (
-                                            <ToggleButton key={d} value={d} sx={{ fontSize: '0.6rem', px: 1 }}>
-                                                {d}d
+                                            <ToggleButton key={d} value={d} sx={{ textTransform:'none'}}>
+                                                {d} Dias
                                             </ToggleButton>
                                         ))}
                                     </ToggleButtonGroup>

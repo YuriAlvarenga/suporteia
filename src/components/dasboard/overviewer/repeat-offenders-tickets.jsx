@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux'
 import {
     Box, Typography, Stack, LinearProgress, Accordion, AccordionSummary,
     AccordionDetails, Chip, FormControl, InputLabel, Select, MenuItem, Grid,
-    Autocomplete, TextField, Collapse, Button, Divider, Paper, IconButton
+    Autocomplete, TextField, Collapse, Button, Divider, Paper, IconButton, ToggleButtonGroup, ToggleButton
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import AddIcon from '@mui/icons-material/Add'
@@ -113,12 +113,12 @@ export default function RepeatOffenderTickets({ showFilters, showAlerts, onOpenM
             <Collapse in={showAlerts}>
                 <Box sx={{ mb: 3, p: 2, bgcolor: '#f8f9fa', borderRadius: 2, border: '1px solid #e0e0e0' }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1}}>
-                        <Box sx={{ width: 4, height: 18, bgcolor: 'var(--color-highlight)', borderRadius: 1}} />
-                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#333' }}>
-                            Lojas em monitoramento
-                        </Typography>
-                    </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
+                            <Box sx={{ width: 4, height: 18, bgcolor: 'var(--color-highlight)', borderRadius: 1 }} />
+                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#333' }}>
+                                Lojas em monitoramento
+                            </Typography>
+                        </Box>
                         <Button
                             variant="outlined"
                             size="small"
@@ -202,58 +202,103 @@ export default function RepeatOffenderTickets({ showFilters, showAlerts, onOpenM
             {/* FILTROS */}
             <Collapse in={showFilters}>
                 <Box sx={{ mb: 3, p: 2, bgcolor: '#f8f9fa', borderRadius: 2, border: '1px solid #e0e0e0' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1}}>
-                        <Box sx={{ width: 4, height: 18, bgcolor: 'var(--color-highlight)', borderRadius: 1}} />
-                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#333' }}>
-                            Filtro de chamados reincidentes
-                        </Typography>
-                    </Box>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                            <Box sx={{ width: 4, height: 18, bgcolor: 'var(--color-highlight)', borderRadius: 1 }} />
+                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#333' }}>
+                                Filtro de chamados reincidentes
+                            </Typography>
+                        </Stack>
+
+                        <ToggleButtonGroup
+                            value={days}
+                            exclusive
+                            onChange={(e, val) => val && setDays(val)}
+                            size="small"
+                            sx={{
+                                height: 28,
+                                '& .MuiToggleButton-root': {
+                                    fontSize: '0.65rem',
+                                    px: 1.5,
+                                    py: 0,
+                                    fontWeight: 'bold',
+                                    border: '1px solid #eee',
+                                    color: '#666', // Cor da fonte quando não selecionado
+                                    transition: 'all 0.3s',
+                                    // Estilo quando selecionado
+                                    '&.Mui-selected': {
+                                        backgroundColor: 'var(--color-highlight)',
+                                        color: 'var(--color-white)',
+                                        '&:hover': {
+                                            backgroundColor: 'var(--color-highlight)',
+                                            opacity: 0.9
+                                        }
+                                    }
+                                }
+                            }}
+                        >
+                            {[7, 15, 30, 45, 90].map(d => (
+                                <ToggleButton sx={{ textTransform: 'none' }} key={d} value={d}>{d} Dias</ToggleButton>
+                            ))}
+                        </ToggleButtonGroup>
+                    </Stack>
 
                     <Grid container spacing={2}>
                         <Grid item xs={12} sm={4} md={2.5}>
                             <FormControl fullWidth size="small">
-                                <InputLabel>Período</InputLabel>
-                                <Select value={days} label="Período" onChange={(e) => setDays(e.target.value)}>
-                                    <MenuItem value={7}>7 dias</MenuItem>
-                                    <MenuItem value={15}>15 dias</MenuItem>
-                                    <MenuItem value={30}>30 dias</MenuItem>
-                                    <MenuItem value={45}>45 dias</MenuItem>
-                                    <MenuItem value={90}>90 dias</MenuItem>
+                                <Select
+                                    value={selectedGroup}
+                                    onChange={(e) => { setSelectedGroup(e.target.value); setSelectedStore('Todas as Lojas') }}
+                                    sx={{ fontSize: '0.75rem', height: 32, bgcolor: '#f9f9f9', '& fieldset': { border: 'none' }, border: '1px solid #eee' }}
+                                >
+                                    <MenuItem value="Todos os Grupos" sx={{ fontSize: '0.75rem' }}>Todos os Grupos</MenuItem>
+                                    {filterOptions.groups.map(g => <MenuItem key={g} value={g} sx={{ fontSize: '0.75rem' }}>{g}</MenuItem>)}
                                 </Select>
                             </FormControl>
                         </Grid>
 
                         <Grid item xs={12} sm={4} md={2.5}>
                             <FormControl fullWidth size="small">
-                                <InputLabel>Grupo</InputLabel>
-                                <Select value={selectedGroup} label="Grupo" onChange={(e) => { setSelectedGroup(e.target.value); setSelectedStore('Todas as Lojas'); }}>
-                                    <MenuItem value="Todos os Grupos">Todos os Grupos</MenuItem>
-                                    {filterOptions.groups.map(g => <MenuItem key={g} value={g}>{g}</MenuItem>)}
-                                </Select>
-                            </FormControl>
-                        </Grid>
-
-                        <Grid item xs={12} sm={4} md={2.5}>
-                            <FormControl fullWidth size="small">
-                                <InputLabel>Tag / Classificação</InputLabel>
-                                <Select value={selectedTag} label="Tag / Classificação" onChange={(e) => setSelectedTag(e.target.value)}>
-                                    <MenuItem value="TODOS">Todas as Tags</MenuItem>
-                                    {filterOptions.tags.map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+                                <Select
+                                    value={selectedTag}
+                                    onChange={(e) => setSelectedTag(e.target.value)}
+                                    displayEmpty // Permite mostrar o valor mesmo sem label flutuante
+                                    sx={{
+                                        fontSize: '0.75rem',
+                                        height: 32,
+                                        bgcolor: '#f9f9f9',
+                                        '& fieldset': { border: 'none' },
+                                        border: '1px solid #eee'
+                                    }}
+                                >
+                                    <MenuItem value="TODOS" sx={{ fontSize: '0.75rem' }}>Todas as Tags</MenuItem>
+                                    {filterOptions.tags.map(t => (
+                                        <MenuItem key={t} value={t} sx={{ fontSize: '0.75rem' }}>{t}</MenuItem>
+                                    ))}
                                 </Select>
                             </FormControl>
                         </Grid>
 
                         <Grid item xs={12} md sx={{ flex: '1 1 auto', minWidth: '250px' }}>
                             <Autocomplete
-                                fullWidth
                                 size="small"
                                 options={filterOptions.stores}
                                 value={selectedStore}
                                 onChange={(event, newValue) => setSelectedStore(newValue || 'Todas as Lojas')}
                                 renderInput={(params) => (
-                                    <TextField {...params} label="Buscar Unidade / Loja" variant="outlined" fullWidth />
+                                    <TextField {...params} placeholder="Buscar Unidade / Loja" variant="outlined"
+                                        sx={{
+                                            '& .MuiInputBase-root': {
+                                                fontSize: '0.75rem',
+                                                height: 32,
+                                                bgcolor: '#f9f9f9',
+                                                '& fieldset': { border: 'none' }
+                                            },
+                                            border: '1px solid #eee',
+                                            borderRadius: 1
+                                        }}
+                                    />
                                 )}
-                                noOptionsText="Nenhuma loja encontrada"
                             />
                         </Grid>
                     </Grid>
