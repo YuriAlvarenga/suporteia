@@ -37,6 +37,7 @@ export default function Tickets() {
     const [selectedTicket, setSelectedTicket] = useState(null)
     const [openClassificationModal, setOpenClassificationModal] = useState(false)
     const [classification, setClassification] = useState('')
+    const [indevido, setIndevido] = useState(false)
     const [ticketToClose, setTicketToClose] = useState(null)
     const [copySuccess, setCopySuccess] = useState(false)
 
@@ -120,12 +121,14 @@ export default function Tickets() {
                 id: ticketToClose,
                 status: 'Finalizado',
                 classificacao: classification,
+                indevido: indevido,
                 userName: user?.fullName || 'Sistema'
             })).unwrap()
             setOpenClassificationModal(false)
             setOpenDrawer(false)
             setSelectedTicket(null)
             setClassification('')
+            setIndevido(false)
             setTicketToClose(null)
         } catch (error) {
             console.error("Erro ao encerrar ticket:", error)
@@ -180,6 +183,8 @@ export default function Tickets() {
                 tags={tags}
                 classification={classification}
                 setClassification={setClassification}
+                indevido={indevido}
+                setIndevido={setIndevido}
                 onConfirm={handleConfirmCloseTicket}
             />
         </React.Fragment>

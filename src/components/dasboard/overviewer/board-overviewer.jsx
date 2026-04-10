@@ -8,6 +8,7 @@ import FilterListIcon from '@mui/icons-material/FilterList'
 import FilterListOffIcon from '@mui/icons-material/FilterListOff'
 import AddAlertIcon from '@mui/icons-material/AddAlert'
 import CreateAlertModal from './create-alert-modal'
+import TicketMetricsCards from './tickets-metrics-cards'
 
 export default function DashboardTickets() {
     const { companies } = useSelector((state) => state.companies)
@@ -50,6 +51,8 @@ export default function DashboardTickets() {
                             <TicketTemperatureCards />
                         </Paper>
 
+                        <TicketMetricsCards />
+
                         <Paper elevation={3} sx={{ borderRadius: 1, overflow: 'hidden', minHeight: '450px' }}>
                             <Box sx={{ p: 1, bgcolor: '#fff', borderBottom: '1px solid #eee', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
@@ -90,16 +93,8 @@ export default function DashboardTickets() {
                 <Grid item xs={12} md={4} lg={3}>
                     <Paper
                         elevation={3}
-                        sx={{
-                            borderRadius: 1,
-                            height: '100%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            maxHeight: 'calc(100vh - 100px)',
-                            overflow: 'hidden'
-                        }}
-                    >
-                        <Box sx={{ p: 1, bgcolor: '#fff', borderBottom: '1px solid #eee' }}>
+                        sx={{ borderRadius: 1, height: '100%', display: 'flex', flexDirection: 'column', maxHeight: 'calc(100vh - 100px)', overflow: 'hidden' }}>
+                        {/* <Box sx={{ p: 1, bgcolor: '#fff', borderBottom: '1px solid #eee' }}>
                             <Stack spacing={1}>
                                 <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
                                     Classificação de erros por tag
@@ -155,15 +150,11 @@ export default function DashboardTickets() {
                                     </ToggleButtonGroup>
                                 </Stack>
                             </Stack>
-                        </Box>
-                        <Box sx={{
-                            flexGrow: 1,
-                            overflowY: 'auto',
-                            scrollbarWidth: 'none',
-                            '&::-webkit-scrollbar': { display: 'none' }
-                        }}>
+                        </Box> 
+                        <Box sx={{ flexGrow: 1, overflowY: 'auto', scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' }}}>
                             <TicketClassificationList range={tagRange} group={tagGroup} />
                         </Box>
+                        */}
                     </Paper>
                 </Grid>
             </Grid>
