@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { Box, Paper, Stack, Typography, MenuItem, Select, ToggleButtonGroup, ToggleButton, Divider, LinearProgress } from '@mui/material'
+import { Box, Paper, Stack, Typography, MenuItem, Select, ToggleButtonGroup, ToggleButton, Divider, LinearProgress, Grid } from '@mui/material'
 import { useSelector } from 'react-redux'
 import AssignmentIcon from '@mui/icons-material/Assignment'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
@@ -33,11 +33,45 @@ export default function TicketMetricsCards() {
             return matchGroup && matchUser
         })
 
+        // --- RANKING DE GRUPOS (SINCRONIZADO COM FILTRO) ---
+        const groupRanking = companies.map(c => {
+            const count = periodTickets.filter(t =>
+                t.cliente && t.cliente.toLowerCase().includes(c.name.toLowerCase())
+            ).length
+            return {
+                name: c.name.toUpperCase(),
+                count,
+                percent: periodTickets.length > 0 ? ((count / periodTickets.length) * 100).toFixed(1) : 0
+            }
+        })
+            .filter(item => {
+                if (group === 'todos') return item.count > 0;
+                return !item.name.toLowerCase().includes(group.toLowerCase()) && item.count > 0;
+            })
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5)
+
+        // --- RANKING DE USUÁRIOS (TODOS, LADO A LADO) ---
+        const allSystemUsers = [...new Set(tickets.map(t => t.responsavel))].filter(Boolean)
+        const ticketsInSelectedGroup = periodTickets.filter(t =>
+            group === 'todos' || (t.cliente && t.cliente.toLowerCase().includes(group.toLowerCase()))
+        )
+
+        const userRanking = allSystemUsers.map(u => {
+            const count = ticketsInSelectedGroup.filter(t => t.responsavel === u).length
+            return {
+                name: u,
+                count,
+                percent: ticketsInSelectedGroup.length > 0 ? ((count / ticketsInSelectedGroup.length) * 100).toFixed(1) : 0
+            }
+        })
+            .filter(item => userFilter === 'todos' || item.name !== userFilter)
+            .sort((a, b) => b.count - a.count);
+
         const totalFiltered = filtered.length
         const totalPeriod = periodTickets.length
         const indevidosCount = filtered.filter(t => t.indevido === true).length
         const mediaValue = range > 0 ? (totalFiltered / range).toFixed(1) : 0
-
         const percentOfPeriod = totalPeriod > 0 ? ((totalFiltered / totalPeriod) * 100).toFixed(1) : 0
         const errorRate = totalFiltered > 0 ? ((indevidosCount / totalFiltered) * 100).toFixed(1) : 0
 
@@ -60,21 +94,16 @@ export default function TicketMetricsCards() {
             value: selectedMetric === 'indevido' ? dailyData[key].indevido : dailyData[key].total
         }))
 
-        // Cálculo da média para a linha (baseada no valor total exibido no gráfico no momento)
-        const totalExibido = chartData.reduce((acc, curr) => acc + curr.value, 0)
-        const mediaGrafico = range > 0 ? (totalExibido / range) : 0
+        const mediaGrafico = range > 0 ? (chartData.reduce((acc, curr) => acc + curr.value, 0) / range) : 0
 
         const globalTags = {}
         const filteredTags = {}
-
         periodTickets.forEach(t => {
             if (!t.classificacao) return
             const tagName = t.classificacao.toUpperCase()
             globalTags[tagName] = (globalTags[tagName] || 0) + 1
-
             const matchGroup = group === 'todos' || (t.cliente && t.cliente.toLowerCase().includes(group.toLowerCase()))
             const matchUser = userFilter === 'todos' || t.responsavel === userFilter
-
             if (matchGroup && matchUser) {
                 filteredTags[tagName] = (filteredTags[tagName] || 0) + 1
             }
@@ -89,50 +118,45 @@ export default function TicketMetricsCards() {
 
         return {
             totalFiltered, indevidosCount, mediaValue, chartData,
-            percentOfPeriod, errorRate, classificationData, mediaGrafico
+            percentOfPeriod, errorRate, classificationData, mediaGrafico,
+            groupRanking, userRanking
         }
-    }, [tickets, range, group, userFilter, selectedMetric])
+    }, [tickets, companies, range, group, userFilter, selectedMetric])
 
-    const MetricCard = ({ type, title, value, subtitle, icon, color }) => {
-        const isSelected = selectedMetric === type
-        return (
-            <Paper
-                elevation={isSelected ? 4 : 1}
-                onClick={() => setSelectedMetric(type)}
-                sx={{
-                    p: 1.5, flex: 1, borderLeft: `4px solid ${color}`, borderRadius: 1, cursor: 'pointer', transition: '0.3s',
-                    bgcolor: isSelected ? `${color}05` : 'var(--color-white)',
-                    transform: isSelected ? 'scale(1.02)' : 'scale(1)',
-                    border: isSelected ? `1px solid ${color}44` : '1px solid transparent'
-                }}
-            >
-                <Stack direction="row" alignItems="center" spacing={2}>
-                    <Box sx={{ bgcolor: `${color}11`, p: 1, borderRadius: 1, display: 'flex' }}>
-                        {React.cloneElement(icon, { sx: { color: color, fontSize: 20 } })}
-                    </Box>
-                    <Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 'bold' }}>{title}</Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 'bold', lineHeight: 1.1 }}>{value}</Typography>
-                        {subtitle && (
-                            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem', display: 'block', mt: 0.2, opacity: 0.8 }}>
-                                {subtitle}
-                            </Typography>
-                        )}
-                    </Box>
-                </Stack>
-            </Paper>
-        )
-    }
+    const MetricCard = ({ type, title, value, subtitle, icon, color }) => (
+        <Paper
+            elevation={selectedMetric === type ? 4 : 1}
+            onClick={() => setSelectedMetric(type)}
+            sx={{
+                p: 1.5, flex: 1, borderLeft: `4px solid ${color}`, borderRadius: 1, cursor: 'pointer', transition: '0.3s',
+                bgcolor: selectedMetric === type ? `${color}05` : 'var(--color-white)',
+                transform: selectedMetric === type ? 'scale(1.02)' : 'scale(1)',
+                border: selectedMetric === type ? `1px solid ${color}44` : '1px solid transparent'
+            }}
+        >
+            <Stack direction="row" alignItems="center" spacing={2}>
+                <Box sx={{ bgcolor: `${color}11`, p: 1, borderRadius: 1, display: 'flex' }}>
+                    {React.cloneElement(icon, { sx: { color: color, fontSize: 20 } })}
+                </Box>
+                <Box>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 'bold' }}>{title}</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', lineHeight: 1.1 }}>{value}</Typography>
+                    {subtitle && <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem', display: 'block' }}>{subtitle}</Typography>}
+                </Box>
+            </Stack>
+        </Paper>
+    )
 
     return (
         <Paper elevation={3} sx={{ borderRadius: 1, overflow: 'hidden' }}>
+            {/* Header / Filtros */}
             <Box sx={{ p: 1, bgcolor: 'var(--color-white)', borderBottom: '1px solid #eee' }}>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems="center" justifyContent="space-between">
                     <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Métricas de Atendimento</Typography>
                     <Stack direction="row" spacing={1}>
                         <Select value={group} onChange={(e) => setGroup(e.target.value)} size="small" sx={{ height: 25, fontSize: '0.7rem', minWidth: 100 }}>
                             <MenuItem value="todos" sx={{ fontSize: '0.7rem' }}>Todos Grupos</MenuItem>
-                            {companies.map(c => <MenuItem key={c.id} value={c.name} sx={{ fontSize: '0.7rem' }}>{c.name.toUpperCase()}</MenuItem>)}
+                            {companies.map(c => <MenuItem key={c.id} value={c.name} sx={{ fontSize: '0.7rem', textTransform:'capitalize'}}>{c.name}</MenuItem>)}
                         </Select>
                         <Select value={userFilter} onChange={(e) => setUserFilter(e.target.value)} size="small" sx={{ height: 25, fontSize: '0.7rem', minWidth: 100 }}>
                             <MenuItem value="todos" sx={{ fontSize: '0.7rem' }}>Todos Usuários</MenuItem>
@@ -142,10 +166,7 @@ export default function TicketMetricsCards() {
                             height: 25,
                             '& .MuiToggleButton-root': {
                                 fontSize: '0.65rem', px: 1, py: 0, fontWeight: 'bold', color: 'var(--color-highlight)',
-                                '&.Mui-selected': {
-                                    backgroundColor: 'var(--color-highlight)', color: 'var(--color-white)',
-                                    '&:hover': { backgroundColor: 'var(--color-highlight)', opacity: 0.9 }
-                                }
+                                '&.Mui-selected': { backgroundColor: 'var(--color-highlight)', color: 'var(--color-white)' }
                             }
                         }}>
                             {[7, 15, 20, 45, 90].map(d => <ToggleButton key={d} value={d} sx={{ textTransform: 'none' }}>{d} Dias</ToggleButton>)}
@@ -154,16 +175,69 @@ export default function TicketMetricsCards() {
                 </Stack>
             </Box>
 
+            {/* Cards Superiores */}
             <Box sx={{ p: 2, bgcolor: '#fcfcfc' }}>
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
                     <MetricCard type="total" title="Total de Chamados" value={metricsData.totalFiltered} subtitle={`${metricsData.percentOfPeriod}% do total no período`} icon={<AssignmentIcon />} color="#0288d1" />
                     <MetricCard type="indevido" title="Chamados Indevidos" value={metricsData.indevidosCount} subtitle={`${metricsData.errorRate}% do total filtrado`} icon={<ErrorOutlineIcon />} color="#0288d1" />
-                    <MetricCard type="media" title="Média Diária" value={metricsData.mediaValue} icon={<AssessmentIcon />} color="#0288d1" />
+                    <MetricCard type="media" title="Média Por Período Selecionado" value={metricsData.mediaValue} icon={<AssessmentIcon />} color="#0288d1" />
                 </Stack>
             </Box>
 
             <Divider sx={{ mx: 2 }} />
 
+            {/* SEÇÃO DE RANKINGS - LADO A LADO EM COLUNAS */}
+            <Box sx={{ p: 2, bgcolor: 'white' }}>
+                <Stack 
+                    direction="row" 
+                    spacing={0} 
+                    divider={<Divider orientation="vertical" flexItem />}
+                >
+                    {/* Ranking de Grupos - Metade Esquerda */}
+                    <Box sx={{ flex: 1, pr: 2 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 'bold', color: '#666', mb: 2, display: 'block' }}>
+                            Ranking de Grupos
+                        </Typography>
+                        <Stack spacing={1}>
+                            {metricsData.groupRanking.map((item, idx) => (
+                                <Stack key={idx} direction="row" justifyContent="space-between" alignItems="center" sx={{ pb: 0.5, borderBottom: '1px solid #f9f9f9' }}>
+                                    <Typography sx={{ fontSize: '0.7rem', color: '#444', fontWeight: '500', textTransform:'capitalize' }}>{item.name.toLowerCase()}</Typography>
+                                    <Typography sx={{ fontSize: '0.7rem', fontWeight: 'bold', color: 'var(--color-highlight)' }}>
+                                        {item.count} <Box component="span" sx={{ fontSize: '0.65rem', color: 'gray', fontWeight: 'normal' }}>({item.percent}%)</Box>
+                                    </Typography>
+                                </Stack>
+                            ))}
+                        </Stack>
+                    </Box>
+
+                    {/* Ranking de Usuários - Metade Direita */}
+                    <Box sx={{ flex: 1, pl: 2 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 'bold', color: '#666', mb: 2, display: 'block' }}>
+                            Tickets por Usuários
+                        </Typography>
+                        <Box sx={{ 
+                            columnCount: 2, 
+                            columnGap: 2,
+                            '& > div': { breakInside: 'avoid', mb: 1 } 
+                        }}>
+                            {metricsData.userRanking.map((item, idx) => (
+                                <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 0.5, borderBottom: '1px solid #f9f9f9' }}>
+                                    <Typography noWrap sx={{ fontSize: '0.65rem', color: '#444', fontWeight: '500', maxWidth: '65%' }}>
+                                        {item.name}
+                                    </Typography>
+                                    <Typography sx={{ fontSize: '0.65rem', fontWeight: 'bold', color: item.count > 0 ? 'var(--color-highlight)' : '#ddd' }}>
+                                        {item.count} <Box component="span" sx={{ fontSize: '0.6rem', color: 'gray', fontWeight: 'normal' }}>({item.percent}%)</Box>
+                                    </Typography>
+                                </Box>
+                            ))}
+                        </Box>
+                    </Box>
+                </Stack>
+            </Box>
+
+            <Divider sx={{ mx: 2 }} />
+
+            {/* Gráfico */}
             <Box sx={{ p: 2 }}>
                 <Typography variant="caption" sx={{ fontWeight: 'bold', color: '#666', mb: 2, display: 'block', textAlign: 'center' }}>
                     Distribuição Diária: {selectedMetric === 'indevido' ? 'Chamados Indevidos' : 'Total de Chamados'}
@@ -175,24 +249,11 @@ export default function TicketMetricsCards() {
                             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
                             <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
                             <Tooltip cursor={{ fill: '#f5f5f5' }} contentStyle={{ borderRadius: '8px', border: 'none', fontSize: '11px' }} />
-                            
-                            {/* A LINHA SÓ APARECE SE 'MEDIA' ESTIVER SELECIONADO */}
                             {selectedMetric === 'media' && (
-                                <ReferenceLine 
-                                    y={metricsData.mediaGrafico} 
-                                    stroke="#0288d1" 
-                                    strokeDasharray="3 3" 
-                                    strokeWidth={2}
-                                >
-                                    <Label 
-                                        value={`Média: ${metricsData.mediaValue}`} 
-                                        position="right" 
-                                        fill="#0288d1" 
-                                        style={{ fontSize: '10px', fontWeight: 'bold' }} 
-                                    />
+                                <ReferenceLine y={metricsData.mediaGrafico} stroke="#0288d1" strokeDasharray="3 3" strokeWidth={2}>
+                                    <Label value={`Média: ${metricsData.mediaValue}`} position="right" fill="#0288d1" style={{ fontSize: '10px', fontWeight: 'bold' }} />
                                 </ReferenceLine>
                             )}
-
                             <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={30}>
                                 {metricsData.chartData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={selectedMetric === 'indevido' ? '#d32f2f' : 'var(--color-highlight)'} />
@@ -205,40 +266,22 @@ export default function TicketMetricsCards() {
 
             <Divider sx={{ mx: 2, mb: 2 }} />
 
+            {/* Tags */}
             <Box sx={{ p: 2, pt: 0 }}>
-                <Typography variant="caption" sx={{ fontWeight: 'bold', color: '#666', mb: 2, display: 'block' }}>
-                    Classificação por Tag
-                </Typography>
+                <Typography variant="caption" sx={{ fontWeight: 'bold', color: '#666', mb: 2, display: 'block' }}>Classificação por Tag</Typography>
                 <Stack spacing={2}>
-                    {metricsData.classificationData.length > 0 ? metricsData.classificationData.map((tag) => (
+                    {metricsData.classificationData.map((tag) => (
                         <Box key={tag.name}>
                             <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
                                 <Box>
                                     <Typography sx={{ fontSize: '0.65rem', fontWeight: 'bold', color: '#444' }}>{tag.name}</Typography>
-                                    <Typography sx={{ fontSize: '0.6rem', color: 'gray' }}>
-                                        {group === 'todos' && userFilter === 'todos'
-                                            ? '100% das ocorrências'
-                                            : `${tag.percent.toFixed(1)}% das ${tag.globalCount} ocorrências do período`}
-                                    </Typography>
+                                    <Typography sx={{ fontSize: '0.6rem', color: 'gray' }}>{group === 'todos' && userFilter === 'todos' ? '100% das ocorrências' : `${tag.percent.toFixed(1)}% das ${tag.globalCount} ocorrências do período`}</Typography>
                                 </Box>
-                                <Typography sx={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--color-highlight)' }}>
-                                    {tag.count}
-                                </Typography>
+                                <Typography sx={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--color-highlight)' }}>{tag.count}</Typography>
                             </Stack>
-                            <LinearProgress
-                                variant="determinate"
-                                value={tag.percent}
-                                sx={{
-                                    height: 6, borderRadius: 5, bgcolor: '#eee',
-                                    '& .MuiLinearProgress-bar': { bgcolor: 'var(--color-highlight)', borderRadius: 5 }
-                                }}
-                            />
+                            <LinearProgress variant="determinate" value={tag.percent} sx={{ height: 6, borderRadius: 5, bgcolor: '#eee', '& .MuiLinearProgress-bar': { bgcolor: 'var(--color-highlight)', borderRadius: 5 } }} />
                         </Box>
-                    )) : (
-                        <Typography sx={{ textAlign: 'center', fontSize: '0.75rem', color: 'gray', py: 2 }}>
-                            Nenhuma tag classificada no filtro atual
-                        </Typography>
-                    )}
+                    ))}
                 </Stack>
             </Box>
         </Paper>
