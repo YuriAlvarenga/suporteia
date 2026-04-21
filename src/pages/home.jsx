@@ -49,7 +49,7 @@ export default function Home() {
 
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <TopBar />
-          {showTopBarTicket && <TopBarTicket handleClick={handleClick} onSearch={(val) => setSearchTerm(val)} tabValue={tabValue} setTabValue={setTabValue} countPending={counts.pending} countFinished={counts.finished} />} {/* renderiza condicionalmente */}
+          {showTopBarTicket && <TopBarTicket handleClick={handleClick}  onSearch={(val) => setSearchTerm(val)} searchTerm={searchTerm} tabValue={tabValue} setTabValue={setTabValue} countPending={counts.pending} countFinished={counts.finished} />} {/* renderiza condicionalmente */}
           <Box sx={{ p: 2, flexGrow: 1, overflow: 'auto' }}>
             <Outlet context={{ tabValue, setCounts, searchTerm }} /> {/* Renderiza o conteúdo das rotas filhas */}
           </Box>
