@@ -22,45 +22,23 @@ export const fetchProfiles = createAsyncThunk(
   }
 )
 
-/* ======================================================
-   CREATE USER
-====================================================== */
-export const createNewUser = createAsyncThunk(
-  "users/createNewUser",
-  async ({ email, password, fullName, role }, { rejectWithValue, dispatch }) => {
+export const inviteNewUser = createAsyncThunk(
+  "users/inviteNewUser",
+  async ({ email, fullName, role }, { rejectWithValue, dispatch }) => {
+    try {
+      // O supabase.functions.invoke chama o código que está lá na nuvem do Supabase
+      const { data, error } = await supabase.functions.invoke('hyper-responder', {
+        body: { email, fullName, role }
+      })
 
-    const { data, error: authError } = await tempSupabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          role: role
-        }
-      }
-    })
+      if (error) throw new Error(error.message || "Erro ao convidar usuário")
 
-    if (authError) {
-      return rejectWithValue(authError.message)
+      // Atualiza a lista de perfis
+      await dispatch(fetchProfiles())
+      return true
+    } catch (err) {
+      return rejectWithValue(err.message)
     }
-
-    if (data.user) {
-
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({
-          full_name: fullName,
-          role: role
-        })
-        .eq("id", data.user.id)
-
-      if (profileError) {
-        return rejectWithValue(profileError.message)
-      }
-    }
-
-    await dispatch(fetchProfiles())
-    return true
   }
 )
 
@@ -125,7 +103,6 @@ export const deleteProfile = createAsyncThunk(
 
 const userSlice = createSlice({
   name: "users",
-
   initialState: {
     list: [],
     loading: false,
@@ -133,51 +110,39 @@ const userSlice = createSlice({
     error: null,
     success: false
   },
-
   reducers: {
-
     resetStatus: (state) => {
       state.error = null
       state.success = false
     }
   },
-
   extraReducers: (builder) => {
-
     builder
       /* FETCH USERS */
       .addCase(fetchProfiles.pending, (state) => {
         state.error = null
-
-        // só mostra skeleton se ainda não carregou nada
-        if (state.list.length === 0) {
-          state.initialFetchLoading = true
-        }
+        if (state.list.length === 0) state.initialFetchLoading = true
       })
-
       .addCase(fetchProfiles.fulfilled, (state, action) => {
         state.initialFetchLoading = false
         state.list = action.payload ?? []
       })
-
       .addCase(fetchProfiles.rejected, (state, action) => {
         state.initialFetchLoading = false
         state.error = action.payload
       })
 
-      /* CREATE USER */
-      .addCase(createNewUser.pending, (state) => {
+      /* INVITE USER (Ajustado para o novo nome da action) */
+      .addCase(inviteNewUser.pending, (state) => {
         state.loading = true
         state.error = null
         state.success = false
       })
-
-      .addCase(createNewUser.fulfilled, (state) => {
+      .addCase(inviteNewUser.fulfilled, (state) => {
         state.loading = false
         state.success = true
       })
-
-      .addCase(createNewUser.rejected, (state, action) => {
+      .addCase(inviteNewUser.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload
       })
@@ -185,5 +150,4 @@ const userSlice = createSlice({
 })
 
 export const { resetStatus } = userSlice.actions
-
 export default userSlice.reducer

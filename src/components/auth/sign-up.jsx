@@ -10,8 +10,8 @@ import {
 } from '@mui/material'
 import { Edit as EditIcon, Delete as DeleteIcon, Check as CheckIcon, Close as CloseIcon } from '@mui/icons-material'
 
-// Importando as ações do Redux
-import { fetchProfiles, createNewUser, updateProfile, deleteProfile, resetStatus } from '../../redux/slice/auth/user-slice'
+// Importando as ações do Redux - Troquei createNewUser por inviteNewUser
+import { fetchProfiles, inviteNewUser, updateProfile, deleteProfile, resetStatus } from '../../redux/slice/auth/user-slice'
 
 export default function SignUp() {
   const dispatch = useDispatch()
@@ -30,32 +30,21 @@ export default function SignUp() {
   const [openDeleteModal, setOpenDeleteModal] = useState(false)
   const [userToDelete, setUserToDelete] = useState(null)
 
+  // FormData ajustado para convite (sem campos de senha)
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
-    password: '',
-    confirmPassword: '',
     role: 'user'
   })
 
-  const passwordsDoNotMatch =
-    formData.confirmPassword &&
-    formData.password !== formData.confirmPassword
-
-  const isFormIncomplete =
-    !formData.fullName ||
-    !formData.email ||
-    !formData.password ||
-    !formData.confirmPassword ||
-    !formData.role ||
-    passwordsDoNotMatch
+  // Validação simplificada: apenas campos obrigatórios de identificação
+  const isFormIncomplete = !formData.fullName || !formData.email || !formData.role
 
   useEffect(() => {
     if (users.length === 0) {
       dispatch(fetchProfiles())
     }
   }, [dispatch, users.length])
-
 
   // Limpar mensagens de erro/sucesso após 4 segundos
   useEffect(() => {
@@ -67,10 +56,21 @@ export default function SignUp() {
 
   const handleCreateUser = async (e) => {
     e.preventDefault()
-    const result = await dispatch(createNewUser(formData))
+    
+    // Chama a nova action de convite
+    const result = await dispatch(inviteNewUser({
+        email: formData.email,
+        fullName: formData.fullName,
+        role: formData.role
+    }))
 
     if (result.meta.requestStatus === 'fulfilled') {
-      setFormData({ fullName: '', email: '', password: '', confirmPassword: '', role: 'user' })
+        // Limpa o formulário após o convite ser enviado com sucesso
+        setFormData({ 
+            fullName: '', 
+            email: '', 
+            role: 'user' 
+        })
     }
   }
 
@@ -119,25 +119,25 @@ export default function SignUp() {
 
       <Paper sx={{ p: 3, mb: 5, borderRadius: 2 }}>
         <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold' }}>
-          Criar Novo Usuário
+          Convidar Novo Usuário
         </Typography>
 
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
         )}
         {success && (
-          <Alert severity="success" sx={{ mb: 2 }}>Usuário criado com sucesso!</Alert>
+          <Alert severity="success" sx={{ mb: 2 }}>Convite enviado com sucesso!</Alert>
         )}
 
         <Box component="form" onSubmit={handleCreateUser} sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
 
           <Box sx={{ display: 'flex', gap: 2, width: '100%', alignItems: 'flex-start' }}>
             <TextField
-              label="Nome"
+              label="Nome Completo"
               size="small"
               value={formData.fullName}
               onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-              sx={{ flex: 3 }}
+              sx={{ flex: 4 }}
               required
             />
             <TextField
@@ -146,35 +146,11 @@ export default function SignUp() {
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              sx={{ flex: 3 }}
+              sx={{ flex: 4 }}
               required
             />
-            <TextField
-              fullWidth
-              size="small"
-              label="Senha"
-              type="password"
-              sx={{ flex: 3 }}
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              required
-            />
-            <TextField
-              fullWidth
-              size="small"
-              label="Confirmar Senha"
-              type="password"
-              sx={{ flex: 3 }}
-              value={formData.confirmPassword}
-              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-              error={passwordsDoNotMatch}
-              helperText={passwordsDoNotMatch ? "As senhas não coincidem" : ""}
-              required
-            />
-          </Box>
-
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <FormControl size="small" sx={{ flex: 2, minWidth: '120px' }}>
+            
+            <FormControl size="small" sx={{ flex: 3 }}>
               <InputLabel>Nível de Acesso</InputLabel>
               <Select
                 value={formData.role}
@@ -203,7 +179,7 @@ export default function SignUp() {
                 '&:disabled': { bgcolor: '#e0e0e0', color: '#9e9e9e' }
               }}
             >
-              {loading ? 'Salvando...' : 'Adicionar Usuário'}
+              {loading ? 'Enviando...' : 'Enviar Convite'}
             </Button>
           </Box>
         </Box>
