@@ -91,8 +91,8 @@ export default function SetPassword() {
             disabled={!passwordsMatch || loading}
             sx={{ 
               mt: 3, 
-              backgroundColor: 'var(--color-highlight)',
-              '&:hover': { backgroundColor: 'var(--color-highlight)', filter: 'brightness(0.9)' },
+              background: 'var(--color-highlight)',
+              '&:hover': { background: 'var(--color-highlight)', filter: 'brightness(0.9)' },
               fontWeight: 'bold',
               py: 1.5,
               textTransform: 'none'

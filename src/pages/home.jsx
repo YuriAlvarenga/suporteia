@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import Box from '@mui/material/Box'
 import TopBar from '../components/menus/top-bar/top-bar'
 import SideBar from '../components/menus/side-bar/side-bar'
 import { Outlet } from 'react-router-dom'
 import { useLocation } from 'react-router-dom'
-import customTheme from '../theme/theme'
 import TopBarTicket from '../components/menus/top-bar/top-bar-tickets'
 
 
@@ -39,23 +37,21 @@ export default function Home() {
 
 
   return (
-    <ThemeProvider theme={customTheme}>
-      <Box sx={{ display: 'flex', height: '100vh', background: 'var(--color-white)' }}>
-        <CssBaseline />
+    <Box sx={{ display: 'flex', height: '100vh', background: 'var(--color-white)' }}>
+      <CssBaseline />
 
-        <Box component="nav" sx={{ width: { sm: 200 }, flexShrink: { sm: 0 } }}>
-          <SideBar sx={{ display: { sm: 'block', xs: 'none' } }} handleClickNewGroup={handleClickNewGroup} />
-        </Box>
-
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <TopBar />
-          {showTopBarTicket && <TopBarTicket handleClick={handleClick}  onSearch={(val) => setSearchTerm(val)} searchTerm={searchTerm} tabValue={tabValue} setTabValue={setTabValue} countPending={counts.pending} countFinished={counts.finished} />} {/* renderiza condicionalmente */}
-          <Box sx={{ p: 2, flexGrow: 1, overflow: 'auto' }}>
-            <Outlet context={{ tabValue, setCounts, searchTerm }} /> {/* Renderiza o conteúdo das rotas filhas */}
-          </Box>
-        </Box>
-
+      <Box component="nav" sx={{ width: { sm: 200 }, flexShrink: { sm: 0 } }}>
+        <SideBar sx={{ display: { sm: 'block', xs: 'none' } }} handleClickNewGroup={handleClickNewGroup} />
       </Box>
-    </ThemeProvider>
+
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <TopBar />
+        {showTopBarTicket && <TopBarTicket handleClick={handleClick} onSearch={(val) => setSearchTerm(val)} searchTerm={searchTerm} tabValue={tabValue} setTabValue={setTabValue} countPending={counts.pending} countFinished={counts.finished} />} {/* renderiza condicionalmente */}
+        <Box sx={{ p: 2, flexGrow: 1, overflow: 'auto' }}>
+          <Outlet context={{ tabValue, setCounts, searchTerm }} /> {/* Renderiza o conteúdo das rotas filhas */}
+        </Box>
+      </Box>
+
+    </Box>
   )
 }

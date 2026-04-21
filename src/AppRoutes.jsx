@@ -9,6 +9,9 @@ import Tickets from "./components/tickets/ticket-from-database"
 import SignUp from "./components/auth/sign-up"
 import BoardOverviewer from "./components/dasboard/overviewer/board-overviewer"
 import SetPassword from "./components/auth/set-password"
+import { ThemeProvider } from '@mui/material/styles'
+import customTheme from '../src/theme/theme'
+
 
 export default function AppRoutes() {
 
@@ -33,22 +36,23 @@ export default function AppRoutes() {
   }
 
   return (
-    <Router>
-      <Routes>
+    <ThemeProvider theme={customTheme}>
+      <Router>
+        <Routes>
+          {/* ROTAS PÚBLICAS (Acesso sem login) */}
+          <Route path="/sign-in" element={<SignIn />} />
+          <Route path="/set-password" element={<SetPassword />} />
 
-        {/* ROTAS PÚBLICAS (Acesso sem login) */}
-        <Route path="/sign-in" element={<SignIn />} />
-        <Route path="/set-password" element={<SetPassword />} />
+          {/* ROTAS PRIVADAS (Acesso apenas logado) */}
+          <Route path="/*" element={<Private><Home /></Private>} >
+            <Route index element={<BoardOverviewer />} />
+            <Route path="board-briefing" element={<BoardBriefing />} />
+            <Route path="tickets/:companyId" element={<Tickets />} />
+            <Route path="sign-up" element={<SignUp />} />
+          </Route>
 
-        {/* ROTAS PRIVADAS (Acesso apenas logado) */}
-        <Route path="/*" element={<Private><Home /></Private>} >
-          <Route index element={<BoardOverviewer />} />
-          <Route path="board-briefing" element={<BoardBriefing />} />
-          <Route path="tickets/:companyId" element={<Tickets />} />
-          <Route path="sign-up" element={<SignUp />} />
-        </Route>
-
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+    </ThemeProvider>
   )
 }
