@@ -3,15 +3,15 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { fetchCompanies, createCompany } from '../../../redux/slice/companies/company-slice'
 import { fetchTickets } from '../../../redux/slice/ticket-slice/ticket-slice'
-import {
-    Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText,
-    Typography, Divider, Box, TextField, IconButton, Badge, Skeleton, Avatar
+import {Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, Divider, Box, TextField, IconButton, Badge, Skeleton, Avatar
 } from '@mui/material'
 import ViewInArIcon from '@mui/icons-material/ViewInAr'
 import CheckIcon from '@mui/icons-material/Check'
 import CloseIcon from '@mui/icons-material/Close'
 import GroupsIcon from '@mui/icons-material/Groups'
-import InsightsIcon from '@mui/icons-material/Insights'
+import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import BarChartIcon from '@mui/icons-material/BarChart'
+
 
 const DRAWER_WIDTH = 200
 
@@ -107,20 +107,20 @@ export default function SideBar() {
                 </ListItem>
 
                 <ListItem disablePadding>
-                    <ListItemButton 
-                        selected={location.pathname === '/board-briefing'} 
-                        onClick={() => handleClick('/board-briefing')}
-                    >
+                    <ListItemButton selected={location.pathname === '/'} onClick={() => handleClick('/')} >
                         <ListItemIcon sx={{ minWidth: 40 }}>
-                            <Box sx={{
-                                width: 28, height: 28, borderRadius: '50%',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                backgroundColor: '#d9d9d9'
-                            }}>
-                                <InsightsIcon sx={{ 
-                                    fontSize: 16, 
-                                    color: location.pathname === '/board-briefing' ? '#7b1616' : '#333' 
-                                }} />
+                            <Box sx={{width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#d9d9d9' }}>
+                                <BarChartIcon sx={{ fontSize: 16,  color: location.pathname === '/' ? '#7b1616' : '#333' }} />
+                            </Box>
+                        </ListItemIcon>
+                        <ListItemText primary="Overviewer" />
+                    </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                    <ListItemButton selected={location.pathname === '/board-briefing'} onClick={() => handleClick('/board-briefing')} >
+                        <ListItemIcon sx={{ minWidth: 40 }}>
+                            <Box sx={{width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#d9d9d9' }}>
+                                <PendingActionsIcon sx={{ fontSize: 16,  color: location.pathname === '/board-briefing' ? '#7b1616' : '#333' }} />
                             </Box>
                         </ListItemIcon>
                         <ListItemText primary="Briefing" />

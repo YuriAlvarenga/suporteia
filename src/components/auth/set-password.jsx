@@ -92,7 +92,7 @@ export default function SetPassword() {
             sx={{ 
               mt: 3, 
               background: 'var(--color-highlight)',
-              '&:hover': { background: 'var(--color-highlight)', filter: 'brightness(0.9)' },
+              '&:hover': { background: 'var(--color-hightlight)', filter: 'brightness(0.9)' },
               fontWeight: 'bold',
               py: 1.5,
               textTransform: 'none'
