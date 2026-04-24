@@ -22,14 +22,15 @@ export const fetchTickets = createAsyncThunk(
 // ✅ Atualizar status do ticket para "Finalizado" com Classificação e Responsável
 export const updateTicketStatus = createAsyncThunk(
   'tickets/updateTicketStatus',
-  async ({ id, status, classificacao, userName }, { rejectWithValue }) => {
+  async ({ id, status, classificacao, userName, indevido }, { rejectWithValue }) => {
     try {
       const { data, error } = await supabase
         .from('chamados')
         .update({ 
           status: status,
           classificacao: classificacao,
-          responsavel: userName         
+          responsavel: userName,
+          is_invalid: indevido        
         })
         .eq('id', id)
         .select()
