@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react'
-import { Box, Paper, Stack, Typography, MenuItem, Select, ToggleButtonGroup, ToggleButton, Divider, LinearProgress, Grid } from '@mui/material'
+import { Box, Paper, Stack, Typography, MenuItem, Select, ToggleButtonGroup, ToggleButton, Divider, LinearProgress, Grid, Accordion, AccordionSummary, AccordionDetails } from '@mui/material'
 import { useSelector } from 'react-redux'
 import AssignmentIcon from '@mui/icons-material/Assignment'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import AssessmentIcon from '@mui/icons-material/Assessment'
 import { subDays, isAfter, parseISO, format } from 'date-fns'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine, Label } from 'recharts'
 
 export default function TicketMetricsCards() {
@@ -98,6 +99,8 @@ export default function TicketMetricsCards() {
 
         const globalTags = {}
         const filteredTags = {}
+        const ticketsPorTag = {}
+
         periodTickets.forEach(t => {
             if (!t.classificacao) return
             const tagName = t.classificacao.toUpperCase()
@@ -106,6 +109,9 @@ export default function TicketMetricsCards() {
             const matchUser = userFilter === 'todos' || t.responsavel === userFilter
             if (matchGroup && matchUser) {
                 filteredTags[tagName] = (filteredTags[tagName] || 0) + 1
+                // Agrupar os tickets para o histórico
+                if (!ticketsPorTag[tagName]) ticketsPorTag[tagName] = []
+                ticketsPorTag[tagName].push(t)
             }
         })
 
@@ -113,7 +119,16 @@ export default function TicketMetricsCards() {
             const count = filteredTags[name]
             const globalCount = globalTags[name]
             const percent = globalCount > 0 ? (count / globalCount) * 100 : 0
-            return { name, count, globalCount, percent }
+            return {
+                name,
+                count,
+                globalCount,
+                percent,
+                // Adicionar a lista de tickets ordenada por data
+                listaTickets: (ticketsPorTag[name] || []).sort((a, b) =>
+                    new Date(b.data_abertura) - new Date(a.data_abertura)
+                )
+            }
         }).sort((a, b) => b.count - a.count)
 
         return {
@@ -156,7 +171,7 @@ export default function TicketMetricsCards() {
                     <Stack direction="row" spacing={1}>
                         <Select value={group} onChange={(e) => setGroup(e.target.value)} size="small" sx={{ height: 25, fontSize: '0.7rem', minWidth: 100 }}>
                             <MenuItem value="todos" sx={{ fontSize: '0.7rem' }}>Todos Grupos</MenuItem>
-                            {companies.map(c => <MenuItem key={c.id} value={c.name} sx={{ fontSize: '0.7rem', textTransform:'capitalize'}}>{c.name}</MenuItem>)}
+                            {companies.map(c => <MenuItem key={c.id} value={c.name} sx={{ fontSize: '0.7rem', textTransform: 'capitalize' }}>{c.name}</MenuItem>)}
                         </Select>
                         <Select value={userFilter} onChange={(e) => setUserFilter(e.target.value)} size="small" sx={{ height: 25, fontSize: '0.7rem', minWidth: 100 }}>
                             <MenuItem value="todos" sx={{ fontSize: '0.7rem' }}>Todos Usuários</MenuItem>
@@ -188,9 +203,9 @@ export default function TicketMetricsCards() {
 
             {/* SEÇÃO DE RANKINGS - LADO A LADO EM COLUNAS */}
             <Box sx={{ p: 2, bgcolor: 'white' }}>
-                <Stack 
-                    direction="row" 
-                    spacing={0} 
+                <Stack
+                    direction="row"
+                    spacing={0}
                     divider={<Divider orientation="vertical" flexItem />}
                 >
                     {/* Ranking de Grupos - Metade Esquerda */}
@@ -201,7 +216,7 @@ export default function TicketMetricsCards() {
                         <Stack spacing={1}>
                             {metricsData.groupRanking.map((item, idx) => (
                                 <Stack key={idx} direction="row" justifyContent="space-between" alignItems="center" sx={{ pb: 0.5, borderBottom: '1px solid #f9f9f9' }}>
-                                    <Typography sx={{ fontSize: '0.7rem', color: '#444', fontWeight: '500', textTransform:'capitalize' }}>{item.name.toLowerCase()}</Typography>
+                                    <Typography sx={{ fontSize: '0.7rem', color: '#444', fontWeight: '500', textTransform: 'capitalize' }}>{item.name.toLowerCase()}</Typography>
                                     <Typography sx={{ fontSize: '0.7rem', fontWeight: 'bold', color: 'var(--color-highlight)' }}>
                                         {item.count} <Box component="span" sx={{ fontSize: '0.65rem', color: 'gray', fontWeight: 'normal' }}>({item.percent}%)</Box>
                                     </Typography>
@@ -215,10 +230,10 @@ export default function TicketMetricsCards() {
                         <Typography variant="caption" sx={{ fontWeight: 'bold', color: '#666', mb: 2, display: 'block' }}>
                             Tickets por Usuários
                         </Typography>
-                        <Box sx={{ 
-                            columnCount: 2, 
+                        <Box sx={{
+                            columnCount: 2,
                             columnGap: 2,
-                            '& > div': { breakInside: 'avoid', mb: 1 } 
+                            '& > div': { breakInside: 'avoid', mb: 1 }
                         }}>
                             {metricsData.userRanking.map((item, idx) => (
                                 <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 0.5, borderBottom: '1px solid #f9f9f9' }}>
@@ -267,22 +282,76 @@ export default function TicketMetricsCards() {
             <Divider sx={{ mx: 2, mb: 2 }} />
 
             {/* Tags */}
+            {/* Seção de Tags no final do componente */}
             <Box sx={{ p: 2, pt: 0 }}>
-                <Typography variant="caption" sx={{ fontWeight: 'bold', color: '#666', mb: 2, display: 'block' }}>Classificação por Tag</Typography>
+                <Typography variant="caption" sx={{ fontWeight: 'bold', color: '#666', mb: 2, display: 'block' }}>
+                    Classificação por Tag
+                </Typography>
                 <Stack spacing={2}>
-                    {metricsData.classificationData.map((tag) => (
-                        <Box key={tag.name}>
-                            <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
-                                <Box>
-                                    <Typography sx={{ fontSize: '0.65rem', fontWeight: 'bold', color: '#444' }}>{tag.name}</Typography>
-                                    <Typography sx={{ fontSize: '0.6rem', color: 'gray' }}>{group === 'todos' && userFilter === 'todos' ? '100% das ocorrências' : `${tag.percent.toFixed(1)}% das ${tag.globalCount} ocorrências do período`}</Typography>
-                                </Box>
-                                <Typography sx={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--color-highlight)' }}>{tag.count}</Typography>
-                            </Stack>
-                            <LinearProgress variant="determinate" value={tag.percent} sx={{ height: 6, borderRadius: 5, bgcolor: '#eee', '& .MuiLinearProgress-bar': { bgcolor: 'var(--color-highlight)', borderRadius: 5 } }} />
-                        </Box>
-                    ))}
-                </Stack>
+    {metricsData.classificationData.map((tag) => (
+        <Box 
+            key={tag.name} 
+            sx={{ 
+                p: 1.5, 
+                border: '1px solid #f0f0f0', 
+                borderRadius: 2, 
+                '&:hover': { borderColor: '#ccc' } 
+            }}
+        >
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                <Box>
+                    <Typography sx={{ fontSize: '0.65rem', fontWeight: 'bold', color: '#444', textTransform: 'uppercase' }}>
+                        {tag.name}
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.6rem', color: 'gray' }}>
+                        {group === 'todos' && userFilter === 'todos'
+                            ? '100% das ocorrências'
+                            : `${tag.percent.toFixed(1)}% das ${tag.globalCount} ocorrências do período`}
+                    </Typography>
+                </Box>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--color-highlight)' }}>
+                    {tag.count}
+                </Typography>
+            </Stack>
+
+            <LinearProgress
+                variant="determinate"
+                value={tag.percent}
+                sx={{
+                    height: 4,
+                    borderRadius: 2,
+                    mb: 1,
+                    bgcolor: '#f0f0f0',
+                    '& .MuiLinearProgress-bar': { bgcolor: 'var(--color-highlight)', borderRadius: 2 }
+                }}
+            />
+
+            <Accordion elevation={0} sx={{ '&:before': { display: 'none' }, bgcolor: '#fafafa' }}>
+                <AccordionSummary
+                    expandIcon={<ExpandMoreIcon sx={{ fontSize: '1rem' }} />}
+                    sx={{ minHeight: 32, height: 32, '& .MuiAccordionSummary-content': { my: 0.5 } }}
+                >
+                    <Typography sx={{ fontSize: '0.65rem', fontWeight: 700 }}>Ver Tickets Relacionados</Typography>
+                </AccordionSummary>
+                <AccordionDetails sx={{ p: 1 }}>
+                    <Box sx={{ bgcolor: '#fcfcfc', borderRadius: '0 0 4px 4px' }}>
+                        {tag.listaTickets.map((t, idx) => (
+                            <Typography key={idx} sx={{
+                                fontSize: '0.7rem',
+                                py: 0.5,
+                                borderBottom: '1px solid #eee',
+                                '&:last-child': { borderBottom: 0 },
+                                color: '#333'
+                            }}>
+                                {format(parseISO(t.data_abertura), 'dd/MM/yyyy HH:mm')} - ID: {t.id}
+                            </Typography>
+                        ))}
+                    </Box>
+                </AccordionDetails>
+            </Accordion>
+        </Box>
+    ))}
+</Stack>
             </Box>
         </Paper>
     )

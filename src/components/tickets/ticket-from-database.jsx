@@ -2,21 +2,15 @@ import * as React from 'react'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchTickets, updateTicketStatus } from '../../redux/slice/ticket-slice/ticket-slice'
+import { fetchCompanies } from '../../redux/slice/companies/company-slice' 
 import { useParams, useOutletContext } from 'react-router-dom'
 import TicketTable from './tickets-tables'
 import TicketDetailsDrawer from './tickets-details'
 import ClassificationModal from './tickets-classification-modal'
 
-
-
 const normalizeName = (name) => {
     if (!name) return ''
-    return name
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9\s.]/g, "") // Agora permite espaços e pontos para a classificação
-        .trim()
+    return name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s.]/g, "").trim()
 }
 
 const capitalizeName = (name) => {
@@ -26,8 +20,9 @@ const capitalizeName = (name) => {
 
 export default function Tickets() {
     const dispatch = useDispatch()
-    const { companyId } = useParams()
+    const { companyId } = useParams() // Agora recebe o UUID vindo da SideBar
     const { tickets, loading } = useSelector((state) => state.tickets)
+    const { companies } = useSelector((state) => state.companies)
     const { user } = useSelector((state) => state.auth)
 
     const context = useOutletContext()
@@ -41,29 +36,20 @@ export default function Tickets() {
     const [ticketToClose, setTicketToClose] = useState(null)
     const [copySuccess, setCopySuccess] = useState(false)
 
-    const tags = [
-        "SW. Cardápio não reflete no totem", "SW. Pagamento sem ordem", "SW. Integração iFood",
-        "SW. Erro de pagamento", "SW. Instabilidade", "IN. Falha na internet",
-        "IN. Erro operacional", "IN. Erro integração", "DU. Dúvidas cardápio",
-        "DU. Dúvidas Financeiras", "DU. Dúvidas acesso", "DU. Status do totem",
-        "SOL. Aquisição totem", "SOL. Configurar totem", "SOL. Cancelamento",
-        "SOL. Ativação", "SOL. Alterações contratuais", "SOL. Solicitações financeiras",
-        "SOL. Alteração cardápio", "HW. hardware", "CRI. Incidente",
-        "OU. Outros", "Cri.Encerramento+24h", "SOL. Inadimplência"
-    ]
+    const tags = ["SW. Cardápio não reflete no totem", "SW. Pagamento sem ordem", "SW. Integração iFood", "SW. Erro de pagamento", "SW. Instabilidade", "IN. Falha na internet", "IN. Erro operacional", "IN. Erro integração", "DU. Dúvidas cardápio", "DU. Dúvidas Financeiras", "DU. Dúvidas acesso", "DU. Status do totem", "SOL. Aquisição totem", "SOL. Configurar totem", "SOL. Cancelamento", "SOL. Ativação", "SOL. Alterações contratuais", "SOL. Solicitações financeiras", "SOL. Alteração cardápio", "HW. hardware", "CRI. Incidente", "OU. Outros", "Cri.Encerramento+24h", "SOL. Inadimplência"]
 
     useEffect(() => {
         dispatch(fetchTickets())
-    }, [dispatch])
+        if (companies.length === 0) dispatch(fetchCompanies())
+    }, [dispatch, companies.length])
 
+    // --- ASSOCIAÇÃO DIRETA POR ID ---
     const ticketsDaEmpresa = React.useMemo(() => {
-        if (!tickets) return []
+        if (!tickets || tickets.length === 0) return []
         if (!companyId) return tickets
-        const targetId = normalizeName(companyId)
-        return tickets.filter(t => {
-            const clienteNormalizado = normalizeName(t.cliente)
-            return clienteNormalizado.includes(targetId)
-        })
+
+        // Filtra os tickets comparando o company_id do banco com o ID da URL
+        return tickets.filter(t => t.company_id === companyId)
     }, [tickets, companyId])
 
     useEffect(() => {
@@ -74,32 +60,22 @@ export default function Tickets() {
         }
     }, [ticketsDaEmpresa, setCounts])
 
-
     const filteredTickets = React.useMemo(() => {
         const statusAlvo = tabValue === 0 ? "em atendimento" : "finalizado"
 
         return ticketsDaEmpresa.filter(t => {
             const matchStatus = t.status?.toLowerCase().trim() === statusAlvo
-
             if (!searchTerm || searchTerm.trim() === "") return matchStatus
 
             const searchNormalized = normalizeName(searchTerm)
             const totemString = Array.isArray(t.totem) ? t.totem.join(' ') : (t.totem || '').toString()
 
-            // Campos básicos
-            const matchGeneral =
+            return matchStatus && (
                 normalizeName(t.ticket?.toString()).includes(searchNormalized) ||
                 normalizeName(t.cliente).includes(searchNormalized) ||
                 normalizeName(t.cnpj).includes(searchNormalized) ||
                 normalizeName(totemString).includes(searchNormalized)
-
-            // Busca na classificação (específico para tickets encerrados)
-            // Adicionamos um fallback de string vazia para segurança
-            const matchClassificacao = t.classificacao
-                ? normalizeName(t.classificacao).includes(searchNormalized)
-                : false
-
-            return matchStatus && (matchGeneral || matchClassificacao)
+            )
         })
     }, [ticketsDaEmpresa, tabValue, searchTerm])
 
@@ -137,21 +113,11 @@ export default function Tickets() {
 
     const handleCopyTicketData = () => {
         if (!selectedTicket) return
-        const totemFormatado = Array.isArray(selectedTicket.totem)
-            ? selectedTicket.totem.join(', ')
-            : selectedTicket.totem?.replace(/[\[\]"]/g, '')
-
-        const textToCopy =
-            `*NOME FANTASIA:* ${capitalizeName(selectedTicket.cliente)}
-            *CNPJ:* ${selectedTicket.cnpj}
-            *TOTEM:* ${totemFormatado}
-            *MOTIVO:* ${selectedTicket.mensagem || 'Não informado'}`
-
+        const totemFormatado = Array.isArray(selectedTicket.totem) ? selectedTicket.totem.join(', ') : selectedTicket.totem?.replace(/[\[\]"]/g, '')
+        const textToCopy = `*NOME FANTASIA:* ${capitalizeName(selectedTicket.cliente)}\n*CNPJ:* ${selectedTicket.cnpj}\n*TOTEM:* ${totemFormatado}\n*MOTIVO:* ${selectedTicket.mensagem || 'Não informado'}`
         navigator.clipboard.writeText(textToCopy).then(() => {
             setCopySuccess(true)
             setTimeout(() => setCopySuccess(false), 3000)
-        }).catch(err => {
-            console.error('Erro ao copiar:', err)
         })
     }
 
@@ -166,27 +132,9 @@ export default function Tickets() {
                 capitalizeName={capitalizeName}
             />
 
-            <TicketDetailsDrawer
-                open={openDrawer}
-                onClose={() => setOpenDrawer(false)}
-                ticket={selectedTicket}
-                tabValue={tabValue}
-                copySuccess={copySuccess}
-                onCopy={handleCopyTicketData}
-                onCloseTicket={handleCloseTicket}
-                capitalizeName={capitalizeName}
-            />
+            <TicketDetailsDrawer open={openDrawer} onClose={() => setOpenDrawer(false)} ticket={selectedTicket} tabValue={tabValue} copySuccess={copySuccess} onCopy={handleCopyTicketData} onCloseTicket={handleCloseTicket} capitalizeName={capitalizeName} />
 
-            <ClassificationModal
-                open={openClassificationModal}
-                onClose={() => setOpenClassificationModal(false)}
-                tags={tags}
-                classification={classification}
-                setClassification={setClassification}
-                indevido={indevido}
-                setIndevido={setIndevido}
-                onConfirm={handleConfirmCloseTicket}
-            />
+            <ClassificationModal open={openClassificationModal} onClose={() => setOpenClassificationModal(false)} tags={tags} classification={classification} setClassification={setClassification} indevido={indevido} setIndevido={setIndevido} onConfirm={handleConfirmCloseTicket} />
         </React.Fragment>
     )
 }
