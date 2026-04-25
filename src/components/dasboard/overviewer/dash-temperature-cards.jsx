@@ -26,10 +26,6 @@ export default function TicketTemperatureCards() {
             t.status?.toLowerCase().trim() === "em atendimento"
         )
 
-        // DEBUG: Veja se os tickets que você acha que são do Bobs realmente têm o ID da empresa Bobs
-        console.log("Tickets Ativos:", ticketsAtivos.map(t => ({ cliente: t.cliente, id_vinculado: t.company_id })))
-        console.log("Empresas Disponíveis:", companies.map(c => ({ nome: c.name, id: c.id })))
-
         // 2. Cria um mapa de contagem: { "uuid-da-empresa": quantidade }
         const contagemPorId = {}
         ticketsAtivos.forEach(t => {
@@ -50,7 +46,7 @@ export default function TicketTemperatureCards() {
     }, [tickets, companies])
 
     return (
-        <Box sx={{ p: 1, bgcolor: '#fff', width: '100%' }}>
+        <Box sx={{ p: 1, bgcolor: '#fff', width: '100%', display:'flex', alignItems:'center', justifyContent:'center' }}>
             <Grid container spacing={1.5} justifyContent="flex-start" sx={{ pb: 1 }}>
                 {dataEmpresas.map((emp) => {
                     const isCritical = emp.total > 5

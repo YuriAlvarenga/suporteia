@@ -2,13 +2,12 @@ import React, { useState } from 'react'
 import { Box, Grid, Typography, Stack, Paper, Tooltip, IconButton, ToggleButtonGroup, ToggleButton, MenuItem, Select, FormControl } from '@mui/material'
 import { useSelector } from 'react-redux'
 import TicketTemperatureCards from './dash-temperature-cards'
-import TicketClassificationList from './dash-classification-tickets-list'
 import RepeatOffenderTickets from './repeat-offenders-tickets'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import FilterListOffIcon from '@mui/icons-material/FilterListOff'
 import AddAlertIcon from '@mui/icons-material/AddAlert'
 import CreateAlertModal from './create-alert-modal'
-import TicketMetricsCards from './tickets-metrics-cards'
+import TicketMetricsCards from './board-of-metrics/board-general-metrics-cards'
 
 export default function DashboardTickets() {
     const { companies } = useSelector((state) => state.companies)
@@ -30,7 +29,6 @@ export default function DashboardTickets() {
     return (
        <Box sx={{ p: 1, display: 'flex', justifyContent: 'center', minHeight: '100vh'}}>
             <Grid container spacing={2}>
-                <Grid item xs={12} md={8} lg={9}>
                     <Stack spacing={2}>
                         <Paper elevation={3} sx={{ borderRadius: 1, overflow: 'hidden' }}>
                             <Box sx={{ p: 1, bgcolor: '#fff', borderBottom: '1px solid #eee' }}>
@@ -41,7 +39,16 @@ export default function DashboardTickets() {
                             <TicketTemperatureCards />
                         </Paper>
 
-                        <TicketMetricsCards />
+                        <Paper elevation={3} sx={{ borderRadius: 1, overflow: 'hidden' }}>
+                            <Box sx={{ p: 1, bgcolor: '#fff', borderBottom: '1px solid #eee' }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                                    Métricas de Atendimentos
+                                </Typography>
+                            </Box>
+                            <TicketMetricsCards />
+                        </Paper>
+
+                        
 
                         <Paper elevation={3} sx={{ borderRadius: 1, overflow: 'hidden', minHeight: '450px' }}>
                             <Box sx={{ p: 1, bgcolor: '#fff', borderBottom: '1px solid #eee', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -77,10 +84,7 @@ export default function DashboardTickets() {
                             />
                         </Paper>
                     </Stack>
-                </Grid>
-
             </Grid>
-
             <CreateAlertModal
                 open={openAlertModal}
                 onClose={() => setOpenAlertModal(false)}

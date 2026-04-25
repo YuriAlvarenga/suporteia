@@ -70,22 +70,30 @@ export default function BoardBriefing() {
 
 
     const handleAdd = async () => {
-    if (!novoAviso.titulo.trim() || !novoAviso.conteudo.trim()) return
+        if (!novoAviso.titulo.trim() || !novoAviso.conteudo.trim()) return
 
-    try {
-        const dadosCompletos = {
-            ...novoAviso,
-            // Enviamos o ID (UUID) que o banco espera, não o e-mail
-            created_by: user?.id, 
-            cor: '#ffffff'
+        try {
+            const dadosParaEnviar = {
+                titulo: novoAviso.titulo,
+                conteudo: novoAviso.conteudo,
+                created_by: user?.id,
+                cor: '#ffffff'
+            }
+
+            // 1. Aguarda a criação no banco
+            await dispatch(addAviso(dadosParaEnviar)).unwrap()
+
+            // 2. Limpa o modal
+            handleClose()
+
+            // 3. BUSCA NOVAMENTE: Isso garante que o novo aviso venha 
+            // com o objeto 'profiles' e 'created_at' preenchidos pelo banco
+            dispatch(fetchAvisos())
+
+        } catch (error) {
+            console.error("Erro ao criar aviso:", error)
         }
-
-        await dispatch(addAviso(dadosCompletos)).unwrap()
-        handleClose()
-    } catch (error) {
-        console.error("Erro ao criar aviso:", error)
     }
-}
 
 
     const handleDeleteClick = (id) => {
@@ -128,7 +136,6 @@ export default function BoardBriefing() {
                     sx={{
                         bgcolor: 'var(--color-highlight)',
                         textTransform: 'none',
-                        '&:hover': { bgcolor: 'var(--color-dark)' }
                     }}
                 >
                     Criar Aviso
@@ -208,7 +215,7 @@ export default function BoardBriefing() {
                                             sx={{
                                                 fontWeight: 'bold',
                                                 color: 'primary.main',
-                                                bgcolor: '#d32f2f',
+                                                bgcolor: 'var(--color-highlight)',
                                                 color: 'white',
                                                 px: 1,
                                                 borderRadius: 1
@@ -218,108 +225,55 @@ export default function BoardBriefing() {
                                         </Typography>
                                     </Stack>
 
-
                                     <Divider sx={{ mb: 1.5 }} />
-
 
                                     <Typography
                                         variant="body2"
-                                        sx={{
-                                            lineHeight: 1.7,
-                                            color: 'var(--color-dark)',
-                                            whiteSpace: 'pre-line',
-                                            display: '-webkit-box',
-                                            WebkitLineClamp: expanded[aviso.id] ? 'unset' : 4,
-                                            WebkitBoxOrient: 'vertical',
-                                            overflow: 'hidden'
-                                        }}
-                                    >
+                                        sx={{ lineHeight: 1.7, color: 'var(--color-dark)', whiteSpace: 'pre-line', display: '-webkit-box', WebkitLineClamp: expanded[aviso.id] ? 'unset' : 4, WebkitBoxOrient: 'vertical', overflow: 'hidden'}}>
                                         {aviso.conteudo}
                                     </Typography>
-
                                 </Box>
 
 
-                                <Box
-                                    sx={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        mt: 2
-                                    }}
-                                >
-
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2}}>
                                     {precisaExpandir ? (
-
-                                        <Button
-                                            size="small"
-                                            startIcon={
+                                        <Button size="small" startIcon={
                                                 expanded[aviso.id]
                                                     ? <ExpandLessIcon />
                                                     : <ExpandMoreIcon />
                                             }
                                             onClick={() => toggleExpand(aviso.id)}
-                                            sx={{
-                                                textTransform: 'none',
-                                                color: 'var(--color-highlight)'
-                                            }}
+                                            sx={{ textTransform: 'none', color: 'var(--color-highlight)'}}
                                         >
                                             {expanded[aviso.id] ? 'Mostrar menos' : 'Ler mais'}
                                         </Button>
 
                                     ) : (
-
                                         <Box />
                                     )}
 
-
-                                    <IconButton
-                                        size="small"
-                                        onClick={() => handleDeleteClick(aviso.id)}
-                                        sx={{
-                                            color: '#777',
-                                            '&:hover': { color: '#d32f2f' }
-                                        }}
-                                    >
+                                    <IconButton size="small" onClick={() => handleDeleteClick(aviso.id)} sx={{ color: '#777','&:hover': { color: 'var(--color-highlight)' }}} >
                                         <DeleteOutlineIcon fontSize="small" />
                                     </IconButton>
-
                                 </Box>
-
                             </Paper>
-
                         )
-
                     })
-
                 )}
-
             </Box>
 
 
             {/* MODAL */}
-            <Modal
-                open={open}
-                onClose={handleClose}
-                closeAfterTransition
-                BackdropComponent={Backdrop}
-                BackdropProps={{ timeout: 500 }}
-            >
+            <Modal open={open} onClose={handleClose} closeAfterTransition BackdropComponent={Backdrop} BackdropProps={{ timeout: 500 }}>
 
                 <Fade in={open}>
                     <Box sx={modalStyle}>
-
                         <Typography variant="h6" sx={{ mb: 3, fontWeight: 'bold' }}>
                             Novo Comunicado
                         </Typography>
 
-
                         <Stack spacing={2.5}>
-
-                            <TextField
-                                label="Título do Aviso"
-                                fullWidth
-                                value={novoAviso.titulo}
+                            <TextField label="Título do Aviso" fullWidth value={novoAviso.titulo}
                                 onChange={(e) =>
                                     setNovoAviso({
                                         ...novoAviso,
@@ -329,12 +283,7 @@ export default function BoardBriefing() {
                             />
 
 
-                            <TextField
-                                label="Conteúdo"
-                                multiline
-                                rows={6}
-                                fullWidth
-                                value={novoAviso.conteudo}
+                            <TextField label="Conteúdo" multiline rows={6} fullWidth value={novoAviso.conteudo}
                                 onChange={(e) =>
                                     setNovoAviso({
                                         ...novoAviso,
@@ -343,74 +292,40 @@ export default function BoardBriefing() {
                                 }
                             />
 
-
                             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-
-                                <Button
-                                    onClick={handleClose}
-                                    sx={{ textTransform: 'none' }}
-                                >
+                                <Button onClick={handleClose} sx={{ textTransform: 'none' }}>
                                     Cancelar
                                 </Button>
-
-                                <Button
-                                    variant="contained"
-                                    onClick={handleAdd}
-                                    disabled={!novoAviso.titulo.trim() || !novoAviso.conteudo.trim()}
-                                    sx={{ bgcolor: 'var(--color-highlight)', '&:disabled': { bgcolor: 'rgba(0, 0, 0, 0.12)' } }}
+                                <Button variant="contained" onClick={handleAdd} disabled={!novoAviso.titulo.trim() || !novoAviso.conteudo.trim()}
+                                    sx={{ textTransform: 'capitalize', bgcolor: 'var(--color-highlight)', '&:disabled': { bgcolor: 'rgba(0, 0, 0, 0.12)' } }}
                                 >
-                                    Publicar Aviso
+                                    Publicar
                                 </Button>
-
                             </Box>
-
                         </Stack>
-
                     </Box>
                 </Fade>
-
             </Modal>
 
 
             {/* CONFIRMAR DELETE */}
-            <Dialog
-                open={confirmOpen}
-                onClose={handleConfirmClose}
-                PaperProps={{ sx: { borderRadius: 3 } }}
-            >
-
-                <DialogTitle>
-                    Remover comunicado
-                </DialogTitle>
-
-
+            <Dialog open={confirmOpen} onClose={handleConfirmClose} PaperProps={{ sx: { borderRadius: 3 } }}>
                 <DialogContent>
                     <DialogContentText>
                         Tem certeza que deseja remover este comunicado?
                     </DialogContentText>
                 </DialogContent>
 
-
                 <DialogActions sx={{ p: 2 }}>
-                    <Button
-                        onClick={handleConfirmClose}
-                        sx={{ textTransform: 'none' }}
-                    >
+                    <Button onClick={handleConfirmClose} sx={{ textTransform: 'none' }}>
                         Cancelar
                     </Button>
 
-                    <Button
-                        onClick={handleConfirmDelete}
-                        variant="contained"
-                        color="error"
-                        sx={{ textTransform: 'none' }}
-                    >
+                    <Button onClick={handleConfirmDelete} variant="contained" sx={{ bgcolor: 'var(--color-highlight)', textTransform: 'none'}}>
                         Confirmar
                     </Button>
                 </DialogActions>
-
             </Dialog>
-
         </Box>
     )
 }
