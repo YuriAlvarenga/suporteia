@@ -19,7 +19,31 @@ export const fetchTickets = createAsyncThunk(
   }
 )
 
-// ✅ Atualizar status do ticket para "Finalizado" com Classificação e Responsável
+// 📝 Atualizar Observações (NOVO)
+export const updateTicketObservation = createAsyncThunk(
+  'tickets/updateTicketObservation',
+  async ({ id, observacoes }, { rejectWithValue }) => {
+    try {
+      const { data, error } = await supabase
+        .from('chamados')
+        .update({ observacoes: observacoes }) // Nome da coluna que você criou no Supabase
+        .eq('id', id)
+        .select()
+
+      if (error) throw error
+      
+      if (!data || data.length === 0) {
+        throw new Error("Erro ao atualizar observação")
+      }
+
+      return data[0] 
+    } catch (error) {
+      return rejectWithValue(error.message)
+    }
+  }
+)
+
+// ✅ Atualizar status do ticket para "Finalizado"
 export const updateTicketStatus = createAsyncThunk(
   'tickets/updateTicketStatus',
   async ({ id, status, classificacao, userName, indevido }, { rejectWithValue }) => {
@@ -30,7 +54,7 @@ export const updateTicketStatus = createAsyncThunk(
           status: status,
           classificacao: classificacao,
           responsavel: userName,
-          is_invalid: indevido        
+          is_invalid: indevido         
         })
         .eq('id', id)
         .select()
@@ -72,9 +96,16 @@ const ticketsSlice = createSlice({
         state.error = action.payload
       })
 
+      // Update Observation (Atualiza o ticket na lista local)
+      .addCase(updateTicketObservation.fulfilled, (state, action) => {
+        const index = state.tickets.findIndex(t => t.id === action.payload.id)
+        if (index !== -1) {
+          state.tickets[index] = action.payload
+        }
+      })
+
       // Update Status
       .addCase(updateTicketStatus.fulfilled, (state, action) => {
-        // Encontra o ticket na lista e atualiza localmente para refletir na UI sem refresh
         const index = state.tickets.findIndex(t => t.id === action.payload.id)
         if (index !== -1) {
           state.tickets[index] = action.payload

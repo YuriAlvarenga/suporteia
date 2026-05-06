@@ -69,7 +69,7 @@ export default function SideBar() {
                 pb: 8,
                 scrollbarWidth: 'none',
                 '&::-webkit-scrollbar': { display: 'none' },
-                '-ms-overflow-style': 'none'
+                msOverflowStyle: 'none'
             }}>
                 <ListItem sx={{ py: 1.2, px: 3 }}>
                     <ViewInArIcon sx={{ fontSize: '0.9rem', color: 'var(--color-dark)' }} />

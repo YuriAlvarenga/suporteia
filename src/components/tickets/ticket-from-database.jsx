@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchTickets, updateTicketStatus } from '../../redux/slice/ticket-slice/ticket-slice'
-import { fetchCompanies } from '../../redux/slice/companies/company-slice' 
+import { fetchTickets, updateTicketStatus, updateTicketObservation} from '../../redux/slice/ticket-slice/ticket-slice'
+import { fetchCompanies } from '../../redux/slice/companies/company-slice'
 import { useParams, useOutletContext } from 'react-router-dom'
 import TicketTable from './tickets-tables'
 import TicketDetailsDrawer from './tickets-details'
@@ -60,6 +60,12 @@ export default function Tickets() {
         }
     }, [ticketsDaEmpresa, setCounts])
 
+
+    //de observações
+    const handleSaveObservation = (id, texto) => {
+        dispatch(updateTicketObservation({ id, observacoes: texto }))
+    }
+
     const filteredTickets = React.useMemo(() => {
         const statusAlvo = tabValue === 0 ? "em atendimento" : "finalizado"
 
@@ -98,7 +104,7 @@ export default function Tickets() {
                 status: 'Finalizado',
                 classificacao: classification,
                 indevido: indevido,
-                userName: user?.fullName || 'Sistema'
+                userName: user?.fullName ?? 'Sistema'
             })).unwrap()
             setOpenClassificationModal(false)
             setOpenDrawer(false)
@@ -132,7 +138,7 @@ export default function Tickets() {
                 capitalizeName={capitalizeName}
             />
 
-            <TicketDetailsDrawer open={openDrawer} onClose={() => setOpenDrawer(false)} ticket={selectedTicket} tabValue={tabValue} copySuccess={copySuccess} onCopy={handleCopyTicketData} onCloseTicket={handleCloseTicket} capitalizeName={capitalizeName} />
+            <TicketDetailsDrawer open={openDrawer} onClose={() => setOpenDrawer(false)} onSaveObservation={handleSaveObservation} ticket={selectedTicket} tabValue={tabValue} copySuccess={copySuccess} onCopy={handleCopyTicketData} onCloseTicket={handleCloseTicket} capitalizeName={capitalizeName} />
 
             <ClassificationModal open={openClassificationModal} onClose={() => setOpenClassificationModal(false)} tags={tags} classification={classification} setClassification={setClassification} indevido={indevido} setIndevido={setIndevido} onConfirm={handleConfirmCloseTicket} />
         </React.Fragment>

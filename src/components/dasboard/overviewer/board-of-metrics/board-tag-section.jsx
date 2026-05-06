@@ -67,7 +67,7 @@ export default function BoardTagsSection({ classificationData, isFiltered, selec
                                     {tag.listaTickets.map((t, idx) => (
                                         <Box key={idx} sx={{ py: 0.5, px: 1, borderBottom: '1px solid #eee', '&:last-child': { borderBottom: 0 }}}>
                                             <Typography sx={{ fontSize: '0.65rem', color: '#666' }}>
-                                                {format(parseISO(t.data_abertura), 'dd/MM/yyyy HH:mm')} - ID: {t.id} 
+                                                {format(parseISO(t.data_abertura), 'dd/MM/yyyy HH:mm')} - ID: {t.ticket} 
                                                 <Box component="span" sx={{ mx: 1, color: '#ccc' }}>|</Box>
                                                 <Box component="span" sx={{ textTransform: 'capitalize' }}>
                                                     {t.cliente}

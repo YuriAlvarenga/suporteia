@@ -289,7 +289,7 @@ export default function RepeatOffenderTickets({ showFilters, showAlerts, onOpenM
                                         <AccordionDetails sx={{ p: 1 }}>
                                             {item.tickets.map((t, tIdx) => (
                                                 <Typography key={tIdx} sx={{ fontSize: '0.7rem', py: 0.5, borderBottom: '1px solid #eee' }}>
-                                                    {new Date(t.data_abertura).toLocaleString('pt-BR')} - ID: {t.id}
+                                                    {new Date(t.data_abertura).toLocaleString('pt-BR')} - ID: {t.ticket}
                                                 </Typography>
                                             ))}
                                         </AccordionDetails>

@@ -1,33 +1,52 @@
-import React from 'react'
-import { Drawer, Box, Typography, IconButton, Divider, Stack, Fade, Alert, Button } from '@mui/material'
-import CloseIcon from '@mui/icons-material/Close'
-import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import React, { useState, useEffect } from 'react'
+import { Drawer, Box, Typography, IconButton, Divider, Stack, Fade, Alert, Button, TextField } from '@mui/material'
+import {
+    Close as CloseIcon,
+    ContentCopy as ContentCopyIcon,
+    Check as CheckIcon,
+    Edit as EditIcon
+} from '@mui/icons-material'
 
-export default function TicketDetailsDrawer({
-    open,
-    onClose,
-    ticket,
-    tabValue,
-    copySuccess,
-    onCopy,
-    onCloseTicket,
-    capitalizeName
-}) {
+export default function TicketDetailsDrawer({open,onClose,ticket,tabValue,copySuccess,onCopy,onCloseTicket,capitalizeName,onSaveObservation}) {
+
+    const [observation, setObservation] = useState('')
+    const [isEditing, setIsEditing] = useState(false)
+
+    // Sincroniza quando o ticket muda ou abre
+    useEffect(() => {
+        if (ticket) {
+            setObservation(ticket.observacoes || '')
+            setIsEditing(false)
+        }
+    }, [ticket, open])
+
     if (!ticket) return null
 
+    const isReadOnly = tabValue === 1
+
+    // AÇÃO DE SALVAR: Local + Redux/Banco
+    const handleSave = async () => {
+        if (onSaveObservation) {
+            // Chamamos a função que vem por prop (que deve ser o dispatch do Redux)
+            await onSaveObservation(ticket.id, observation)
+        }
+        setIsEditing(false)
+    }
+
+    // Função para apagar e resetar (como solicitado: apaga tudo e some botões)
+    const handleClearAndCancel = async () => {
+        setObservation('')
+        // Se você quiser que o "cancelar" também limpe no banco de dados:
+        if (onSaveObservation) {
+            await onSaveObservation(ticket.id, '')
+        }
+        setIsEditing(false)
+    }
+
     return (
-        <Drawer
-            anchor="right"
-            open={open}
-            onClose={onClose}
-            PaperProps={{ sx: { width: 400, p: 3 } }}
-        >
+        <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{ sx: { width: 400, p: 3 } }}>
             <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-                <IconButton
-                    onClick={onClose}
-                    size="small"
-                    sx={{ position: 'absolute', top: -20, right: -18, '&:hover': { color: '#fb0b0b' } }}
-                >
+                <IconButton onClick={onClose} size="small" sx={{ position: 'absolute', top: -20, right: -18, '&:hover': { color: '#fb0b0b' } }}>
                     <CloseIcon />
                 </IconButton>
 
@@ -45,7 +64,7 @@ export default function TicketDetailsDrawer({
 
                 <Divider />
 
-                <Stack spacing={1} sx={{ flexGrow: 1, overflowY: 'auto', mt: 2 }}>
+                <Stack spacing={2} sx={{ flexGrow: 1, overflowY: 'auto', mt: 2, pr: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                         <IconButton color="primary" onClick={onCopy} title="Copiar dados">
                             <ContentCopyIcon fontSize="small" />
@@ -61,15 +80,82 @@ export default function TicketDetailsDrawer({
                         <Typography variant="body1" color='text.secondary'>{ticket.cnpj}</Typography>
                     </Box>
                     <Box>
-                        <Typography variant="caption" color="#000000" fontWeight="bold">TOTEM</Typography>
-                        <Typography variant="body1" color='text.secondary'>
-                            {Array.isArray(ticket.totem) ? ticket.totem.join(', ') : ticket.totem?.replace(/[\[\]"]/g, '')}
-                        </Typography>
-                    </Box>
-                    <Box>
                         <Typography variant="caption" color="#000000" fontWeight="bold">MOTIVO</Typography>
                         <Typography variant="body1" color='text.secondary'>{ticket.mensagem || 'Não informado'}</Typography>
                     </Box>
+
+                    {/* QUADRO DE OBSERVAÇÕES */}
+                    <Box>
+                    <Typography variant="caption" color="#000000" fontWeight="bold" sx={{ display: 'block' }}>
+                        OBSERVAÇÕES
+                    </Typography>
+                        <TextField
+                            multiline
+                            rows={3}
+                            fullWidth
+                            placeholder={isReadOnly ? "Sem observações." : "Notas internas"}
+                            value={observation}
+                            onChange={(e) => setObservation(e.target.value)}
+                            onFocus={() => !isReadOnly && setIsEditing(true)}
+                            disabled={isReadOnly || (!isEditing && observation.length > 0)}
+                            variant={isReadOnly ? "standard" : "outlined"}
+                            InputProps={{
+                                ...(isReadOnly ? { disableUnderline: true } : {}),
+                                sx: {
+                                    fontSize: '0.8rem',
+                                    color: (isReadOnly || !isEditing) ? '#888' : '#555',
+                                    WebkitTextFillColor: (isReadOnly || !isEditing) ? '#888' : '#555'
+                                }
+                            }} 
+                            sx={{ mb: 1 }}
+                        />
+
+                        {!isReadOnly && (
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', opacity: 0.8, '&:hover': { opacity: 1 }, transition: '0.2s', minHeight: '30px' }}>
+
+                                {/* MODO EDIÇÃO ATIVA */}
+                                {isEditing ? (
+                                    <>
+                                        {/* BOTÃO CANCELAR: Apenas volta ao estado original do ticket */}
+                                        <IconButton
+                                            onClick={() => {
+                                                setObservation(ticket.observacoes || ''); // Restaura o texto original
+                                                setIsEditing(false); // Volta para o modo leitura
+                                            }}
+                                            sx={{ color: '#d32f2f' }}
+                                            size="small"
+                                            title="Cancelar edição"
+                                        >
+                                            <CloseIcon fontSize="inherit" />
+                                        </IconButton>
+
+                                        {/* BOTÃO SALVAR */}
+                                        <IconButton
+                                            onClick={handleSave}
+                                            sx={{ color: '#1976d2' }}
+                                            size="small"
+                                            title="Salvar"
+                                        >
+                                            <CheckIcon fontSize="inherit" />
+                                        </IconButton>
+                                    </>
+                                ) : (
+                                    /* MODO LEITURA: Aparece apenas se houver algo escrito */
+                                    observation.length > 0 && (
+                                        <IconButton
+                                            onClick={() => setIsEditing(true)}
+                                            sx={{ color: '#1976d2' }}
+                                            size="small"
+                                            title="Editar observação"
+                                        >
+                                            <EditIcon fontSize="inherit" />
+                                        </IconButton>
+                                    )
+                                )}
+                            </Box>
+                        )}
+                    </Box>
+                    {/* DADOS ESPECÍFICOS DE TICKETS FECHADOS */}
                     {tabValue === 1 && (
                         <React.Fragment>
                             <Box>
@@ -78,27 +164,21 @@ export default function TicketDetailsDrawer({
                                     {ticket.resumo || 'Sem resumo disponível.'}
                                 </Typography>
                             </Box>
-
-                            {/* NOVO CAMPO: CLASSIFICAÇÃO */}
                             <Box>
                                 <Typography variant="caption" color="#000000" fontWeight="bold">CLASSIFICAÇÃO</Typography>
-                                <Typography
-                                    variant="body2"
-                                    sx={{
-                                        mt: 1,
-                                        p: 1,
-                                        color: '#7b1616',
-                                        bgcolor: '#fff5f5',
-                                        borderRadius: 1,
-                                        fontWeight: 'bold',
-                                        border: '1px solid #7b1616'
-                                    }}
-                                >
+                                <Typography variant="body2" sx={{ mt: 1, p: 1, color: '#7b1616', bgcolor: '#fff5f5', borderRadius: 1, fontWeight: 'bold', border: '1px solid #7b1616' }}>
                                     {ticket.classificacao || 'Não classificado'}
                                 </Typography>
                             </Box>
+                            {ticket.responsavel && (
+                                <Box>
+                                    <Typography variant="caption" color="#000000" fontWeight="bold">ENCERRADO POR</Typography>
+                                    <Typography variant="body2" sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
+                                        {ticket.responsavel}
+                                    </Typography>
+                                </Box>
+                            )}
                         </React.Fragment>
-
                     )}
                 </Stack>
 
@@ -108,11 +188,7 @@ export default function TicketDetailsDrawer({
                             variant="contained"
                             fullWidth
                             onClick={() => onCloseTicket(ticket.id)}
-                            sx={{
-                                textTransform: 'none',
-                                bgcolor: '#7b1616',
-                                '&:hover': { bgcolor: '#5a1010' }
-                            }}
+                            sx={{ textTransform: 'none', bgcolor: '#7b1616', '&:hover': { bgcolor: '#5a1010' } }}
                         >
                             Encerrar Ticket
                         </Button>
