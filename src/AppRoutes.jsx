@@ -4,13 +4,14 @@ import { useSelector } from "react-redux"
 
 import SignIn from "./components/auth/sign-in"
 import Home from "./pages/home"
-import BoardBriefing from "./components/dasboard/briefing/board-briefing"
+import BoardBriefing from "./components/dashboard/briefing/board-briefing"
 import Tickets from "./components/tickets/ticket-from-database"
 import SignUp from "./components/auth/sign-up"
-import BoardOverviewer from "./components/dasboard/overviewer/board-overviewer"
+import BoardOverviewer from "./components/dashboard/overviewer/board-overviewer"
 import SetPassword from "./components/auth/set-password"
 import { ThemeProvider } from '@mui/material/styles'
 import customTheme from '../src/theme/theme'
+import RepeatOffenderTickets from "./components/dashboard/repeat-offender-tickets.jsx/repeat-offenders-tickets"
 
 
 export default function AppRoutes() {
@@ -47,6 +48,7 @@ export default function AppRoutes() {
           <Route path="/*" element={<Private><Home /></Private>} >
             <Route index element={<BoardOverviewer />} />
             <Route path="board-briefing" element={<BoardBriefing />} />
+            <Route path="reincidentes" element={<RepeatOffenderTickets showFilters={true} showAlerts={true} />} />
             <Route path="tickets/:companyId" element={<Tickets />} />
             <Route path="sign-up" element={<SignUp />} />
           </Route>

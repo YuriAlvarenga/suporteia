@@ -13,6 +13,7 @@ import GroupsIcon from '@mui/icons-material/Groups'
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import BarChartIcon from '@mui/icons-material/BarChart'
 import { fetchAvisos } from '../../../redux/slice/briefing/briefing-slice'
+import GppMaybeIcon from '@mui/icons-material/GppMaybe'
 
 
 const DRAWER_WIDTH = 200
@@ -102,7 +103,7 @@ export default function SideBar() {
                 </ListItem>
 
                 <ListItem disablePadding>
-                    <ListItemButton selected={location.pathname === '/board-briefing'} onClick={() => handleClick('/board-briefing')} sx={{display:'flex', alignItems: 'center', justifyContent:'space-between'}} >
+                    <ListItemButton selected={location.pathname === '/board-briefing'} onClick={() => handleClick('/board-briefing')} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} >
                         <ListItemIcon sx={{ minWidth: 40 }}>
                             <Avatar sx={{ width: 28, height: 28, fontSize: 14, bgcolor: '#d9d9d9', backgroundColor: '#d9d9d9' }}>
                                 <PendingActionsIcon sx={{ fontSize: 14, color: location.pathname === '/board-briefing' ? '#7b1616' : '#333' }} />
@@ -115,6 +116,21 @@ export default function SideBar() {
                                 sx={{ '& .MuiBadge-badge': { bgcolor: '#fff', color: '#7b1616', fontWeight: 'bold' } }}
                             />
                         )}
+                    </ListItemButton>
+                </ListItem>
+
+                <ListItem disablePadding>
+                    <ListItemButton
+                        selected={location.pathname === '/reincidentes'}
+                        onClick={() => handleClick('/reincidentes')}
+                        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                    >
+                        <ListItemIcon sx={{ minWidth: 40 }}>
+                            <Avatar sx={{ width: 28, height: 28, fontSize: 14, bgcolor: '#d9d9d9' }}>
+                                <GppMaybeIcon sx={{ fontSize: 14, color: location.pathname === '/reincidentes' ? '#7b1616' : '#333' }} />
+                            </Avatar>
+                        </ListItemIcon>
+                        <ListItemText primary="Reincidentes" />
                     </ListItemButton>
                 </ListItem>
 
