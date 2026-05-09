@@ -22,7 +22,7 @@ export default function DashboardTickets() {
                 <Box>
                     <Paper elevation={1} sx={{ borderRadius: 2, overflow: 'hidden' , display:'table', minWidth:'fit-content'}}>
                         <Box sx={{ p: 1, bgcolor: '#fff', borderBottom: '1px solid #eee' }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#333' }}>
+                            <Typography  sx={{fontSize: '0.9rem', fontWeight: 'bold', color: '#333' }}>
                                 Temperatura da Operação
                             </Typography>
                         </Box>
@@ -33,7 +33,7 @@ export default function DashboardTickets() {
                 {/* Seção de Métricas */}
                 <Paper elevation={1} sx={{ borderRadius: 2, overflow: 'hidden' }}>
                     <Box sx={{ p: 1, bgcolor: '#fff', borderBottom: '1px solid #eee' }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#333' }}>
+                        <Typography sx={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#333' }}>
                             Métricas de Atendimentos
                         </Typography>
                     </Box>
