@@ -1,15 +1,9 @@
 import React from 'react'
-import { Table, TableBody, TableCell, TableHead, TableRow, Paper, IconButton, Skeleton } from '@mui/material'
+import { Table, TableBody, TableCell, TableHead, TableRow, Paper, IconButton, Skeleton, Tooltip } from '@mui/material'
 import VisibilityIcon from '@mui/icons-material/Visibility'
+import NoteAltIcon from '@mui/icons-material/NoteAlt'
 
-export default function TicketTable({ 
-    loading, 
-    tickets, 
-    filteredTickets, 
-    tabValue, 
-    onViewDetails, 
-    capitalizeName 
-}) {
+export default function TicketTable({ loading, tickets, filteredTickets, tabValue, onViewDetails, capitalizeName, Tooltip }) {
     return (
         <Paper elevation={3} sx={{ padding: 2 }}>
             <Table size="small" sx={{ tableLayout: 'fixed', width: '100%' }}>
@@ -47,8 +41,22 @@ export default function TicketTable({
                                     <TableCell sx={{ fontSize: '0.8rem', border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>{Array.isArray(ticket.totem) ? ticket.totem.join(', ') : ticket.totem?.replace(/[\[\]"]/g, '')}</TableCell>
                                     <TableCell sx={{ fontSize: '0.8rem', border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>{dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</TableCell>
                                     {tabValue === 1 && <TableCell sx={{ fontSize: '0.8rem', border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>{ticket.tempo}</TableCell>}
-                                    <TableCell sx={{ fontSize: '0.8rem', border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>
-                                        <IconButton sx={{ color: "#1976d2" }} onClick={() => onViewDetails(ticket)}><VisibilityIcon fontSize="small" /></IconButton>
+                                    <TableCell sx={{ fontSize: '0.8rem', border: '1px solid #ccc', padding: '8px', textAlign: 'center', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                                        <IconButton 
+                                                sx={{ color: "#1976d2" }} 
+                                                onClick={() => onViewDetails(ticket)}
+                                                title="Visualizar Detalhes"
+                                            >
+                                                <VisibilityIcon fontSize="small" />
+                                            </IconButton>
+
+                                            {ticket.observacoes && String(ticket.observacoes).trim().length > 0 && (
+                                                <NoteAltIcon 
+                                                    fontSize="small" 
+                                                    sx={{ color: '#1976d2' }} 
+                                                    titleAccess="Possui observação" 
+                                                />
+                                            )}
                                     </TableCell>
                                 </TableRow>
                             );

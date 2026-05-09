@@ -12,6 +12,8 @@ import CloseIcon from '@mui/icons-material/Close'
 import GroupsIcon from '@mui/icons-material/Groups'
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import BarChartIcon from '@mui/icons-material/BarChart'
+import { fetchAvisos } from '../../../redux/slice/briefing/briefing-slice'
+
 
 const DRAWER_WIDTH = 200
 
@@ -31,9 +33,13 @@ export default function SideBar() {
     const [isCreating, setIsCreating] = useState(false)
     const [newGroupName, setNewGroupName] = useState('')
 
+    // quantidade de avisos 
+    const { avisos } = useSelector((state) => state.avisos)
+
     useEffect(() => {
         dispatch(fetchCompanies())
         dispatch(fetchTickets())
+        dispatch(fetchAvisos())
     }, [dispatch])
 
     // Filtro por ID direto para o contador
@@ -60,12 +66,14 @@ export default function SideBar() {
         setIsCreating(false)
     }
 
+
+
     return (
         <Drawer variant="permanent" sx={{ width: DRAWER_WIDTH, flexShrink: 0, '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box' } }}>
-            <List sx={{ 
-                height: '100vh', 
-                background: 'var(--color-background)', 
-                overflowY: 'auto', 
+            <List sx={{
+                height: '100vh',
+                background: 'var(--color-background)',
+                overflowY: 'auto',
                 pb: 8,
                 scrollbarWidth: 'none',
                 '&::-webkit-scrollbar': { display: 'none' },
@@ -85,22 +93,28 @@ export default function SideBar() {
                 <ListItem disablePadding>
                     <ListItemButton selected={location.pathname === '/'} onClick={() => handleClick('/')} >
                         <ListItemIcon sx={{ minWidth: 40 }}>
-                            <Box sx={{width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#d9d9d9' }}>
+                            <Avatar sx={{ width: 28, height: 28, fontSize: 14, bgcolor: '#d9d9d9', backgroundColor: '#d9d9d9' }}>
                                 <BarChartIcon sx={{ fontSize: 14, color: location.pathname === '/' ? '#7b1616' : '#333' }} />
-                            </Box>
+                            </Avatar>
                         </ListItemIcon>
                         <ListItemText primary="Overviewer" />
                     </ListItemButton>
                 </ListItem>
 
                 <ListItem disablePadding>
-                    <ListItemButton selected={location.pathname === '/board-briefing'} onClick={() => handleClick('/board-briefing')} >
+                    <ListItemButton selected={location.pathname === '/board-briefing'} onClick={() => handleClick('/board-briefing')} sx={{display:'flex', alignItems: 'center', justifyContent:'space-between'}} >
                         <ListItemIcon sx={{ minWidth: 40 }}>
-                            <Box sx={{width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#d9d9d9' }}>
+                            <Avatar sx={{ width: 28, height: 28, fontSize: 14, bgcolor: '#d9d9d9', backgroundColor: '#d9d9d9' }}>
                                 <PendingActionsIcon sx={{ fontSize: 14, color: location.pathname === '/board-briefing' ? '#7b1616' : '#333' }} />
-                            </Box>
+                            </Avatar>
                         </ListItemIcon>
                         <ListItemText primary="Briefing" />
+                        {avisos?.length > 0 && (
+                            <Badge
+                                badgeContent={avisos.length}
+                                sx={{ '& .MuiBadge-badge': { bgcolor: '#fff', color: '#7b1616', fontWeight: 'bold' } }}
+                            />
+                        )}
                     </ListItemButton>
                 </ListItem>
 
@@ -111,7 +125,7 @@ export default function SideBar() {
                 </ListItem>
 
                 {loading && companies.length === 0 ? (
-                   [1,2,3,4,5].map(i => <Skeleton key={i} variant="text" sx={{ mx: 2 }} />)
+                    [1, 2, 3, 4, 5].map(i => <Skeleton key={i} variant="text" sx={{ mx: 2 }} />)
                 ) : (
                     // Criamos uma cópia do array e ordenamos: quem tem chamados (count > 0) fica no topo
                     [...companies]
@@ -124,18 +138,18 @@ export default function SideBar() {
                                 <ListItem disablePadding key={company.id}>
                                     <ListItemButton selected={isSelected} onClick={() => handleClick(companyPath)}>
                                         <ListItemIcon sx={{ minWidth: 40 }}>
-                                            <Avatar sx={{ width: 28, height: 28, fontSize: 14, bgcolor: '#d9d9d9', color: isSelected ? '#7b1616' : '#333'}}>
+                                            <Avatar sx={{ width: 28, height: 28, fontSize: 14, bgcolor: '#d9d9d9', color: isSelected ? '#7b1616' : '#333' }}>
                                                 {company.name.charAt(0).toUpperCase()}
                                             </Avatar>
                                         </ListItemIcon>
-                                        <ListItemText 
-                                            primary={capitalizeName(company.name)} 
-                                            sx={{'& .MuiListItemText-primary': {fontSize: '12px'}}}
+                                        <ListItemText
+                                            primary={capitalizeName(company.name)}
+                                            sx={{ '& .MuiListItemText-primary': { fontSize: '12px' } }}
                                         />
                                         {count > 0 && (
-                                            <Badge 
-                                                badgeContent={count} 
-                                                sx={{ '& .MuiBadge-badge': { bgcolor: '#fff', color: '#7b1616', fontWeight: 'bold' } }} 
+                                            <Badge
+                                                badgeContent={count}
+                                                sx={{ '& .MuiBadge-badge': { bgcolor: '#fff', color: '#7b1616', fontWeight: 'bold' } }}
                                             />
                                         )}
                                     </ListItemButton>
