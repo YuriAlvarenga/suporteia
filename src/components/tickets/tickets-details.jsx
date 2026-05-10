@@ -65,10 +65,18 @@ export default function TicketDetailsDrawer({open,onClose,ticket,tabValue,copySu
                 <Divider />
 
                 <Stack spacing={2} sx={{ flexGrow: 1, overflowY: 'auto', mt: 2, pr: 1 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <IconButton color="primary" onClick={onCopy} title="Copiar dados">
-                            <ContentCopyIcon fontSize="small" />
-                        </IconButton>
+                    <Box sx={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
+                         {tabValue === 0 && (
+                            <Typography sx={{color:'var(--color-highlight)'}}>Chamado em Andamento</Typography> 
+                         )}   
+                         {tabValue === 1 && (
+                            <Typography sx={{color:'var(--color-highlight)'}}>Chamado Encerrado</Typography> 
+                         )}   
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <IconButton color="primary" onClick={onCopy} title="Copiar dados">
+                                <ContentCopyIcon fontSize="small" />
+                            </IconButton>
+                        </Box>
                     </Box>
 
                     <Box>
@@ -122,7 +130,7 @@ export default function TicketDetailsDrawer({open,onClose,ticket,tabValue,copySu
                                                 setObservation(ticket.observacoes || ''); // Restaura o texto original
                                                 setIsEditing(false); // Volta para o modo leitura
                                             }}
-                                            sx={{ color: '#d32f2f' }}
+                                            sx={{ color: 'var(--color-highlight)'}}
                                             size="small"
                                             title="Cancelar edição"
                                         >
@@ -188,7 +196,7 @@ export default function TicketDetailsDrawer({open,onClose,ticket,tabValue,copySu
                             variant="contained"
                             fullWidth
                             onClick={() => onCloseTicket(ticket.id)}
-                            sx={{ textTransform: 'none', bgcolor: '#7b1616', '&:hover': { bgcolor: '#5a1010' } }}
+                            sx={{ textTransform: 'none', bgcolor: 'var(--color-highlight)', '&:hover': { bgcolor: 'var(--color-highlight)' } }}
                         >
                             Encerrar Ticket
                         </Button>
