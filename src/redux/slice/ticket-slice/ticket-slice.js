@@ -19,14 +19,14 @@ export const fetchTickets = createAsyncThunk(
   }
 )
 
-// 📝 Atualizar Observações (NOVO)
+// 📝 Atualizar Observações
 export const updateTicketObservation = createAsyncThunk(
   'tickets/updateTicketObservation',
   async ({ id, observacoes }, { rejectWithValue }) => {
     try {
       const { data, error } = await supabase
         .from('chamados')
-        .update({ observacoes: observacoes }) // Nome da coluna que você criou no Supabase
+        .update({ observacoes: observacoes })
         .eq('id', id)
         .select()
 
@@ -34,6 +34,30 @@ export const updateTicketObservation = createAsyncThunk(
       
       if (!data || data.length === 0) {
         throw new Error("Erro ao atualizar observação")
+      }
+
+      return data[0] 
+    } catch (error) {
+      return rejectWithValue(error.message)
+    }
+  }
+)
+
+// 🔗 Atualizar Link Associado (NOVO)
+export const updateTicketLink = createAsyncThunk(
+  'tickets/updateTicketLink',
+  async ({ id, link }, { rejectWithValue }) => {
+    try {
+      const { data, error } = await supabase
+        .from('chamados')
+        .update({ link: link }) // Coluna 'link' criada no SQL acima
+        .eq('id', id)
+        .select()
+
+      if (error) throw error
+      
+      if (!data || data.length === 0) {
+        throw new Error("Erro ao atualizar link")
       }
 
       return data[0] 
@@ -54,7 +78,7 @@ export const updateTicketStatus = createAsyncThunk(
           status: status,
           classificacao: classificacao,
           responsavel: userName,
-          is_invalid: indevido         
+          is_invalid: indevido          
         })
         .eq('id', id)
         .select()
@@ -96,8 +120,16 @@ const ticketsSlice = createSlice({
         state.error = action.payload
       })
 
-      // Update Observation (Atualiza o ticket na lista local)
+      // Update Observation
       .addCase(updateTicketObservation.fulfilled, (state, action) => {
+        const index = state.tickets.findIndex(t => t.id === action.payload.id)
+        if (index !== -1) {
+          state.tickets[index] = action.payload
+        }
+      })
+
+      // Update Link (Atualiza o ticket na lista local)
+      .addCase(updateTicketLink.fulfilled, (state, action) => {
         const index = state.tickets.findIndex(t => t.id === action.payload.id)
         if (index !== -1) {
           state.tickets[index] = action.payload

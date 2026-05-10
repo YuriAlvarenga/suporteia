@@ -7,12 +7,6 @@ import TicketMetricsCards from './board-of-metrics/board-general-metrics-cards'
 
 export default function DashboardTickets() {
 
-    const [openAlertModal, setOpenAlertModal] = useState(false)
-    const [monitoredStores, setMonitoredStores] = useState([])
-
-    const handleAddAlert = (newAlert) => {
-        setMonitoredStores((prev) => [...prev, newAlert])
-    }
 
     return (
         <Box sx={{ p: 2, minHeight: '100vh' }}>
@@ -42,11 +36,6 @@ export default function DashboardTickets() {
 
             </Stack>
 
-            <CreateAlertModal
-                open={openAlertModal}
-                onClose={() => setOpenAlertModal(false)}
-                onSave={handleAddAlert}
-            />
         </Box>
     )
 }

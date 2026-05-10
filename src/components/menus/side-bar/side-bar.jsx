@@ -3,17 +3,15 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { fetchCompanies, createCompany } from '../../../redux/slice/companies/company-slice'
 import { fetchTickets } from '../../../redux/slice/ticket-slice/ticket-slice'
-import {
-    Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, Divider, Box, TextField, IconButton, Badge, Skeleton, Avatar
-} from '@mui/material'
+import { Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, Divider, Box, TextField, IconButton, Badge, Skeleton, Avatar} from '@mui/material'
 import ViewInArIcon from '@mui/icons-material/ViewInAr'
 import CheckIcon from '@mui/icons-material/Check'
 import CloseIcon from '@mui/icons-material/Close'
 import GroupsIcon from '@mui/icons-material/Groups'
-import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import PendingActionsIcon from '@mui/icons-material/PendingActions'
 import BarChartIcon from '@mui/icons-material/BarChart'
 import { fetchAvisos } from '../../../redux/slice/briefing/briefing-slice'
-import GppMaybeIcon from '@mui/icons-material/GppMaybe'
+import RepeatIcon from '@mui/icons-material/Repeat'
 
 
 const DRAWER_WIDTH = 200
@@ -127,7 +125,7 @@ export default function SideBar() {
                     >
                         <ListItemIcon sx={{ minWidth: 40 }}>
                             <Avatar sx={{ width: 28, height: 28, fontSize: 14, bgcolor: '#d9d9d9' }}>
-                                <GppMaybeIcon sx={{ fontSize: 14, color: location.pathname === '/reincidentes' ? '#7b1616' : '#333' }} />
+                                <RepeatIcon sx={{ fontSize: 14, color: location.pathname === '/reincidentes' ? '#7b1616' : '#333' }} />
                             </Avatar>
                         </ListItemIcon>
                         <ListItemText primary="Reincidentes" />

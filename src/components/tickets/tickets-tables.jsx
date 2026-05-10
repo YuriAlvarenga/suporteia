@@ -3,6 +3,8 @@ import { Table, TableBody, TableCell, TableHead, TableRow, Paper, IconButton, Sk
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import NoteAltIcon from '@mui/icons-material/NoteAlt'
 import AssignmentIcon from '@mui/icons-material/Assignment'
+import LinkIcon from '@mui/icons-material/Link' 
+
 
 export default function TicketTable({ loading, tickets, filteredTickets, tabValue, onViewDetails, capitalizeName, Tooltip }) {
     return (
@@ -43,14 +45,27 @@ export default function TicketTable({ loading, tickets, filteredTickets, tabValu
                                     <TableCell sx={{ fontSize: '0.8rem', border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>{dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</TableCell>
                                     {tabValue === 1 && <TableCell sx={{ fontSize: '0.8rem', border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>{ticket.tempo}</TableCell>}
                                     <TableCell sx={{ fontSize: '0.8rem', border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>
-                                        <Stack sx={{display:'flex', flexDirection:'row', alignItems:'center', justifyContent:'center'}}>
-                                            <IconButton sx={{ color: "#1976d2" }} onClick={() => onViewDetails(ticket)}title="Visualizar Detalhes" >
-                                                    <VisibilityIcon fontSize="small" />
-                                                </IconButton>
+                                        <Stack sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                                            <IconButton sx={{ color: "#1976d2", '&:hover': { color: 'var(--color-highlight)' } }} onClick={() => onViewDetails(ticket)} title="Visualizar Detalhes" >
+                                                <VisibilityIcon fontSize="small" />
+                                            </IconButton>
 
-                                                {ticket.observacoes && String(ticket.observacoes).trim().length > 0 && (
-                                                    <AssignmentIcon fontSize="small" sx={{ color: '#1976d2' }} titleAccess="Possui observação"  />
-                                                )}
+                                            {ticket.observacoes && String(ticket.observacoes).trim().length > 0 && (
+                                                <AssignmentIcon fontSize="small" sx={{ color:'var(--color-highlight)' }} titleAccess="Possui observação" />
+                                            )}
+
+                                            {/* FUNCIONALIDADE DE LINK ASSOCIDADO */}
+                                            {ticket.link && String(ticket.link).trim().length > 0 && (
+                                                <IconButton  sx={{ color: "#1976d2", '&:hover': { color: 'var(--color-highlight)' } }}  size="small" 
+                                                    onClick={() => {
+                                                        const url = ticket.link.startsWith('http') ? ticket.link : `https://${ticket.link}`;
+                                                        window.open(url, '_blank');
+                                                    }}
+                                                    title="Abrir thread associada"
+                                                >
+                                                    <LinkIcon fontSize="small" />
+                                                </IconButton>
+                                            )}
                                         </Stack>
                                     </TableCell>
                                 </TableRow>

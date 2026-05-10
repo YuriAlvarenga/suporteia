@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchTickets, updateTicketStatus, updateTicketObservation} from '../../redux/slice/ticket-slice/ticket-slice'
+import { fetchTickets, updateTicketStatus, updateTicketObservation, updateTicketLink } from '../../redux/slice/ticket-slice/ticket-slice'
 import { fetchCompanies } from '../../redux/slice/companies/company-slice'
 import { useParams, useOutletContext } from 'react-router-dom'
 import TicketTable from './tickets-tables'
@@ -20,7 +20,7 @@ const capitalizeName = (name) => {
 
 export default function Tickets() {
     const dispatch = useDispatch()
-    const { companyId } = useParams() // Agora recebe o UUID vindo da SideBar
+    const { companyId } = useParams()
     const { tickets, loading } = useSelector((state) => state.tickets)
     const { companies } = useSelector((state) => state.companies)
     const { user } = useSelector((state) => state.auth)
@@ -85,6 +85,11 @@ export default function Tickets() {
         })
     }, [ticketsDaEmpresa, tabValue, searchTerm])
 
+    //Função para salvar o link associado
+    const handleSaveLink = (id, novoLink) => {
+        dispatch(updateTicketLink({ id, link: novoLink }))
+    }
+
     const handleViewDetails = (ticket) => {
         setSelectedTicket(ticket)
         setOpenDrawer(true)
@@ -138,7 +143,7 @@ export default function Tickets() {
                 capitalizeName={capitalizeName}
             />
 
-            <TicketDetailsDrawer open={openDrawer} onClose={() => setOpenDrawer(false)} onSaveObservation={handleSaveObservation} ticket={selectedTicket} tabValue={tabValue} copySuccess={copySuccess} onCopy={handleCopyTicketData} onCloseTicket={handleCloseTicket} capitalizeName={capitalizeName} />
+            <TicketDetailsDrawer open={openDrawer} onClose={() => setOpenDrawer(false)} onSaveObservation={handleSaveObservation} onSaveLink={handleSaveLink} ticket={selectedTicket} tabValue={tabValue} copySuccess={copySuccess} onCopy={handleCopyTicketData} onCloseTicket={handleCloseTicket} capitalizeName={capitalizeName} />
 
             <ClassificationModal open={openClassificationModal} onClose={() => setOpenClassificationModal(false)} tags={tags} classification={classification} setClassification={setClassification} indevido={indevido} setIndevido={setIndevido} onConfirm={handleConfirmCloseTicket} />
         </React.Fragment>
