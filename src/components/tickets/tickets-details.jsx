@@ -16,7 +16,7 @@ export default function TicketDetailsDrawer({ open, onClose, ticket, tabValue, c
     useEffect(() => {
         if (ticket) {
             setObservation(ticket.observacoes || '')
-            setLink(ticket.link || '') // Sincroniza com a nova coluna 'link'
+            setLink(ticket.link || '') 
             setIsEditing(false)
             setIsEditingLink(false)
         }

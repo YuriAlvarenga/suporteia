@@ -69,7 +69,7 @@ export default function Tickets() {
     const filteredTickets = React.useMemo(() => {
         const statusAlvo = tabValue === 0 ? "em atendimento" : "finalizado"
 
-        return ticketsDaEmpresa.filter(t => {
+        const filtrados = ticketsDaEmpresa.filter(t => {
             const matchStatus = t.status?.toLowerCase().trim() === statusAlvo
             if (!searchTerm || searchTerm.trim() === "") return matchStatus
 
@@ -83,6 +83,22 @@ export default function Tickets() {
                 normalizeName(totemString).includes(searchNormalized)
             )
         })
+
+        // Ajuste de ordenação solicitado:
+        return filtrados.sort((a, b) => {
+            if (tabValue === 1) {
+                // Em finalizados, ordena pela data de fechamento (mais recentes primeiro)
+                const dataA = new Date(a.data_fechamento || a.data_abertura)
+                const dataB = new Date(b.data_fechamento || b.data_abertura)
+                return dataB - dataA
+            } else {
+                // Em atendimento, mantém ordem original por abertura
+                const dataA = new Date(a.data_abertura)
+                const dataB = new Date(b.data_abertura)
+                return dataB - dataA
+            }
+        })
+
     }, [ticketsDaEmpresa, tabValue, searchTerm])
 
     //Função para salvar o link associado
@@ -102,21 +118,23 @@ export default function Tickets() {
     }
 
     const handleConfirmCloseTicket = async () => {
-        if (!classification) return
+        if (!classification || !selectedTicket) return
+
         try {
             await dispatch(updateTicketStatus({
-                id: ticketToClose,
+                id: selectedTicket.id,
                 status: 'Finalizado',
                 classificacao: classification,
                 indevido: indevido,
-                userName: user?.fullName ?? 'Sistema'
+                userName: user?.fullName ?? 'Sistema',
+                data_abertura: selectedTicket.data_abertura
             })).unwrap()
+
+            dispatch(fetchTickets())
+
             setOpenClassificationModal(false)
             setOpenDrawer(false)
             setSelectedTicket(null)
-            setClassification('')
-            setIndevido(false)
-            setTicketToClose(null)
         } catch (error) {
             console.error("Erro ao encerrar ticket:", error)
         }

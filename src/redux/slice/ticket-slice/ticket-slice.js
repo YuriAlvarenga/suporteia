@@ -31,12 +31,12 @@ export const updateTicketObservation = createAsyncThunk(
         .select()
 
       if (error) throw error
-      
+
       if (!data || data.length === 0) {
         throw new Error("Erro ao atualizar observação")
       }
 
-      return data[0] 
+      return data[0]
     } catch (error) {
       return rejectWithValue(error.message)
     }
@@ -55,41 +55,57 @@ export const updateTicketLink = createAsyncThunk(
         .select()
 
       if (error) throw error
-      
+
       if (!data || data.length === 0) {
         throw new Error("Erro ao atualizar link")
       }
 
-      return data[0] 
+      return data[0]
     } catch (error) {
       return rejectWithValue(error.message)
     }
   }
 )
 
-// ✅ Atualizar status do ticket para "Finalizado"
+// Função para calcular o tempo e enviar em updateticketstatus abaixo
+const calcularTempoTotal = (dataAberturaISO) => {
+    const inicio = new Date(dataAberturaISO)
+    const agora = new Date()
+
+    const diffMs = agora - inicio
+    let totalSegundos = Math.floor(diffMs / 1000)
+
+    if (totalSegundos < 0) return "0h 0m 0s"
+
+    const horas = Math.floor(totalSegundos / 3600)
+    const minutos = Math.floor((totalSegundos % 3600) / 60)
+    const segundos = totalSegundos % 60
+
+    return `${horas}h ${minutos}m ${segundos}s`
+}
+
+// Thunk atualizado
 export const updateTicketStatus = createAsyncThunk(
   'tickets/updateTicketStatus',
-  async ({ id, status, classificacao, userName, indevido }, { rejectWithValue }) => {
+  async ({ id, status, classificacao, userName, indevido, data_abertura }, { rejectWithValue }) => {
     try {
+      const tempoCalculado = calcularTempoTotal(data_abertura)
+
       const { data, error } = await supabase
         .from('chamados')
-        .update({ 
+        .update({
           status: status,
           classificacao: classificacao,
           responsavel: userName,
-          is_invalid: indevido          
+          is_invalid: indevido,
+          data_fechamento: new Date().toISOString(),
+          tempo: tempoCalculado
         })
         .eq('id', id)
-        .select()
+        .select('*')
 
       if (error) throw error
-      
-      if (!data || data.length === 0) {
-        throw new Error("Nenhum dado retornado após a atualização")
-      }
-
-      return data[0] 
+      return data[0]
     } catch (error) {
       return rejectWithValue(error.message)
     }
