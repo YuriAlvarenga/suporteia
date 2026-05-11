@@ -3,8 +3,9 @@ import { Table, TableBody, TableCell, TableHead, TableRow, Paper, IconButton, Sk
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import AssignmentIcon from '@mui/icons-material/Assignment'
 import LinkIcon from '@mui/icons-material/Link'
+import NotificationImportantIcon from '@mui/icons-material/NotificationImportant'
 
-export default function TicketTable({ loading, tickets, filteredTickets, tabValue, onViewDetails, capitalizeName }) {
+export default function TicketTable({ loading, tickets, filteredTickets, alerts = [], tabValue, onViewDetails, capitalizeName }) {
     return (
         <Paper elevation={3} sx={{ padding: 2 }}>
             <Table size="small" sx={{ tableLayout: 'fixed', width: '100%' }}>
@@ -56,6 +57,12 @@ export default function TicketTable({ loading, tickets, filteredTickets, tabValu
                             const dataAberturaObj = formatarData(ticket.data_abertura)
                             const dataFechamentoObj = formatarData(ticket.data_fechamento)
 
+                            // Lógica de verificação de alerta
+                            const temAlerta = alerts.some(alerta => 
+                                String(alerta.group_id) === String(ticket.company_id) && 
+                                alerta.store_name === ticket.cliente
+                            )
+
                             return (
                                 <TableRow key={ticket.id} hover sx={{ bgcolor: index % 2 === 0 ? '#f9f9f9' : '#fff' }}>
                                     <TableCell sx={{ fontSize: '0.8rem', border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>
@@ -77,7 +84,6 @@ export default function TicketTable({ loading, tickets, filteredTickets, tabValu
                                         {capitalizeName(ticket.cliente)}
                                     </TableCell>
 
-                                    {/* Célula CNPJ com Quebra de Linha */}
                                     <TableCell sx={{ fontSize: '0.8rem', border: '1px solid #ccc', padding: '8px', textAlign: 'center', wordBreak: 'break-all' }}>
                                         {ticket.cnpj}
                                     </TableCell>
@@ -103,6 +109,10 @@ export default function TicketTable({ loading, tickets, filteredTickets, tabValu
 
                                     <TableCell sx={{ fontSize: '0.8rem', border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>
                                         <Stack sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                                            {temAlerta && (
+                                                <NotificationImportantIcon fontSize="small" sx={{ color: 'var(--color-highlight)' }} titleAccess="Alerta Ativo" />
+                                            )}
+                                            
                                             {ticket.observacoes && String(ticket.observacoes).trim().length > 0 && (
                                                 <AssignmentIcon fontSize="small" sx={{ color: 'var(--color-highlight)' }} titleAccess="Possui observação" />
                                             )}
@@ -110,8 +120,8 @@ export default function TicketTable({ loading, tickets, filteredTickets, tabValu
                                             {ticket.link && String(ticket.link).trim().length > 0 && (
                                                 <IconButton sx={{ color: "#1976d2", '&:hover': { color: 'var(--color-highlight)' } }} size="small"
                                                     onClick={() => {
-                                                        const url = ticket.link.startsWith('http') ? ticket.link : `https://${ticket.link}`;
-                                                        window.open(url, '_blank');
+                                                        const url = ticket.link.startsWith('http') ? ticket.link : `https://${ticket.link}`
+                                                        window.open(url, '_blank')
                                                     }}
                                                     title="Abrir thread associada"
                                                 >

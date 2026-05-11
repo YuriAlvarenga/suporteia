@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import {
     Box, Typography, Stack, LinearProgress, Accordion, AccordionSummary,
     AccordionDetails, Chip, FormControl, Select, MenuItem, Grid,
@@ -13,10 +13,13 @@ import FilterListOffIcon from '@mui/icons-material/FilterListOff'
 import AddAlertIcon from '@mui/icons-material/AddAlert'
 import { subDays, isAfter, parseISO } from 'date-fns'
 import CreateAlertModal from './create-alert-modal'
+import { fetchAlerts, createAlert, deleteAlert } from '../../../redux/slice/alert-slice/alert-slice'
 
 export default function RepeatOffenderTickets() {
+    const dispatch = useDispatch()
     const { tickets = [] } = useSelector((state) => state.tickets)
     const { companies = [] } = useSelector((state) => state.companies)
+    const { monitoredStores = [] } = useSelector((state) => state.alerts || {})
 
     const [openFilters, setOpenFilters] = useState(false)
     const [showAlertPanel, setShowAlertPanel] = useState(false)
@@ -27,16 +30,27 @@ export default function RepeatOffenderTickets() {
     const [selectedStore, setSelectedStore] = useState('Todas as Lojas')
     const [selectedTag, setSelectedTag] = useState('TODOS')
 
-    const [monitoredStores, setMonitoredStores] = useState([])
+    useEffect(() => {
+        dispatch(fetchAlerts())
+    }, [dispatch])
+
+    // Lógica para abrir o painel se houver alertas
+    useEffect(() => {
+        if (monitoredStores.length > 0) {
+            setShowAlertPanel(true)
+        } else {
+            setShowAlertPanel(false)
+        }
+    }, [monitoredStores])
 
     const normalize = (text) => text?.toString().toUpperCase().trim() || ""
 
     const handleAddAlert = (newAlert) => {
-        setMonitoredStores((prev) => [...prev, newAlert])
+        dispatch(createAlert(newAlert))
     }
 
-    const handleDeleteAlert = (index) => {
-        setMonitoredStores((prev) => prev.filter((_, i) => i !== index))
+    const handleDeleteAlert = (id) => {
+        dispatch(deleteAlert(id))
     }
 
     useEffect(() => {
@@ -44,8 +58,12 @@ export default function RepeatOffenderTickets() {
     }, [selectedGroup])
 
     const groupedMonitored = useMemo(() => {
+        if (!Array.isArray(monitoredStores)) return {}
+        
         return monitoredStores.reduce((acc, curr) => {
-            const groupName = curr.groupName || 'Geral'
+            if (!curr) return acc
+            // Corrigido para group_name (nome no seu banco)
+            const groupName = curr.group_name || 'Geral'
             if (!acc[groupName]) acc[groupName] = []
             acc[groupName].push(curr)
             return acc
@@ -125,16 +143,15 @@ export default function RepeatOffenderTickets() {
 
     const gruposKeys = Object.keys(reincidentes)
 
-    // Lógica de cores para as tags de ação
     const getActionBadge = (acao) => {
         if (!acao) return null
         const lowerAcao = acao.toLowerCase()
-        let bgColor = '#89f98c' // Trivial (Verde)
+        let bgColor = '#89f98c'
         
         if (lowerAcao.includes('crítica')) {
-            bgColor = '#ff9800' // Crítica (Laranja)
+            bgColor = '#ff9800'
         } else if (lowerAcao.includes('urgente')) {
-            bgColor = 'var(--color-highlight)' // Urgente (Vermelho Sistema)
+            bgColor = 'var(--color-highlight)'
         }
 
         return (
@@ -191,22 +208,26 @@ export default function RepeatOffenderTickets() {
                                     <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', ml: 0.5, textTransform: 'capitalize', display: 'block', mb: 0.5 }}>{groupName.toLowerCase()}</Typography>
                                     <Stack spacing={1}>
                                         {stores.map((store, sIdx) => {
-                                            const grupoId = String(store.groupId || store.company_id)
+                                            // Corrigido para group_id (nome no seu banco)
+                                            const grupoId = String(store.group_id || store.company_id)
                                             const grupoData = reincidentes[grupoId] || []
-                                            const infoLoja = grupoData.find(item => normalize(item.loja) === normalize(store.name) && (normalize(store.tag) === 'TODAS' || normalize(item.tag) === normalize(store.tag)))
+                                            // Corrigido para store_name (nome no seu banco)
+                                            const infoLoja = grupoData.find(item => normalize(item.loja) === normalize(store.store_name) && (normalize(store.tag) === 'TODAS' || normalize(item.tag) === normalize(store.tag)))
                                             const totalTickets = infoLoja ? infoLoja.total : 0
                                             return (
                                                 <Paper key={sIdx} variant="outlined" sx={{ p: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: '#fff' }}>
                                                     <Box>
-                                                        <Typography sx={{ fontSize: '0.85rem', fontWeight: 'bold', textTransform: 'capitalize' }}>{store.name.toLowerCase()}</Typography>
-                                                        <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>Tag: <Box component="span" sx={{ color: 'var(--color-highlight)', fontWeight: 'bold', textTransform:'capitalize' }}>{store.tag.toLowerCase()}</Box></Typography>
-                                                        <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>Ação: <Box component="span" sx={{ color: 'var(--color-highlight)', fontWeight: 'bold', textTransform:'capitalize' }}>{store.acao.toLowerCase()}</Box></Typography>
+                                                        {/* Corrigido para store_name */}
+                                                        <Typography sx={{ fontSize: '0.85rem', fontWeight: 'bold', textTransform: 'capitalize' }}>{store.store_name?.toLowerCase()}</Typography>
+                                                        <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>Tag: <Box component="span" sx={{ color: 'var(--color-highlight)', fontWeight: 'bold', textTransform:'capitalize' }}>{store.tag?.toLowerCase()}</Box></Typography>
+                                                        {/* Corrigido para action_type */}
+                                                        <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>Ação: <Box component="span" sx={{ color: 'var(--color-highlight)', fontWeight: 'bold', textTransform:'capitalize' }}>{store.action_type?.toLowerCase()}</Box></Typography>
                                                         <Typography sx={{ fontSize: '0.7rem', fontWeight: '500', color: totalTickets > 0 ? 'var(--color-highlight)' : 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
                                                             Status: {totalTickets > 0 ? `${totalTickets} ticket(s) encontrado(s)` : 'Nenhum chamado encontrado'}
                                                         </Typography>
                                                     </Box>
                                                     <Stack direction="row" alignItems="center" spacing={1}>
-                                                        <IconButton size="small" color="error" onClick={() => handleDeleteAlert(sIdx)}><DeleteOutlineIcon fontSize="small" /></IconButton>
+                                                        <IconButton size="small" color="error" onClick={() => handleDeleteAlert(store.id)}><DeleteOutlineIcon fontSize="small" /></IconButton>
                                                     </Stack>
                                                 </Paper>
                                             )
@@ -265,7 +286,7 @@ export default function RepeatOffenderTickets() {
 
                 {gruposKeys.length === 0 ? (
                     <Box sx={{ p: 4, textAlign: 'center', border: '1px dashed #ccc' }}>
-                        <Typography color="text.secondary">Nenhum chamado encontrado para os filtros selecionados.</Typography>
+                        <Typography color="text.secondary">Nenhum chamado reincidente encontrado para os filtros selecionados.</Typography>
                     </Box>
                 ) : (
                     gruposKeys.map((grupoId) => {
@@ -276,8 +297,8 @@ export default function RepeatOffenderTickets() {
                                 <Typography variant="overline" sx={{ display: 'block', mb: 1, borderBottom: '2px solid #eee', textTransform: 'capitalize', fontWeight: '600' }}>Grupo: {nomeGrupo.toLowerCase()}</Typography>
                                 <Stack spacing={2}>
                                     {reincidentes[grupoId].map((item, idx) => {
-                                        // VERIFICAÇÃO DE ALERTA PARA A TAG EM MONITORAMENTO
-                                        const alerta = monitoredStores.find(m => String(m.groupId) === String(grupoId) && normalize(m.name) === normalize(item.loja))
+                                        // Corrigido para group_id e store_name
+                                        const alerta = monitoredStores.find(m => String(m.group_id) === String(grupoId) && normalize(m.store_name) === normalize(item.loja))
                                         return (
                                             <Box key={idx} sx={{ p: 1.5, border: '1px solid #f0f0f0', borderRadius: 2, '&:hover': { borderColor: '#ccc' } }}>
                                                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
@@ -296,7 +317,8 @@ export default function RepeatOffenderTickets() {
                                                                         variant="outlined" 
                                                                         sx={{ height: 18, fontSize: '0.55rem', fontWeight: 'bold', background: '#0288d1', color: '#f0f0f0' }} 
                                                                     />
-                                                                    {getActionBadge(alerta.acao)}
+                                                                    {/* Corrigido para action_type */}
+                                                                    {getActionBadge(alerta.action_type)}
                                                                 </>
                                                             )}
                                                         <Chip label={`${item.total}`} size="small" sx={{ fontWeight: 900, background: 'transparent', color: 'var(--color-highlight)', fontSize: '0.65rem' }} />

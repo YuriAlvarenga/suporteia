@@ -37,14 +37,13 @@ export default function CreateAlertModal({ open, onClose, onSave }) {
     const handleSave = () => {
         const groupObj = companies.find(c => String(c.id) === String(selectedGroup))
         
+        // CORREÇÃO: Nomes das chaves alinhados com o Banco de Dados (Supabase)
         const novoAlerta = {
-            // AJUSTE: Garantindo que a chave seja 'groupId' para alinhar com o componente principal
-            groupId: String(selectedGroup), 
-            groupName: groupObj ? groupObj.name : 'Geral',
-            name: selectedStore,
+            group_id: String(selectedGroup), 
+            group_name: groupObj?.name || 'Geral',
+            store_name: selectedStore, 
             tag: selectedTag === 'Todas as Tags' ? 'TODAS' : selectedTag,
-            acao: selectedAction,
-            dataCriacao: new Date().toISOString()
+            action_type: selectedAction, 
         }
 
         if (onSave) onSave(novoAlerta)

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchTickets, updateTicketStatus, updateTicketObservation, updateTicketLink } from '../../redux/slice/ticket-slice/ticket-slice'
 import { fetchCompanies } from '../../redux/slice/companies/company-slice'
+import { fetchAlerts } from '../../redux/slice/alert-slice/alert-slice'
 import { useParams, useOutletContext } from 'react-router-dom'
 import TicketTable from './tickets-tables'
 import TicketDetailsDrawer from './tickets-details'
@@ -24,6 +25,9 @@ export default function Tickets() {
     const { tickets, loading } = useSelector((state) => state.tickets)
     const { companies } = useSelector((state) => state.companies)
     const { user } = useSelector((state) => state.auth)
+    
+    // Ajustado para 'alerts' (nome do slice) e 'monitoredStores' (nome no initialState)
+    const { monitoredStores = [] } = useSelector((state) => state.alerts || {})
 
     const context = useOutletContext()
     const { tabValue, setCounts, searchTerm } = context || {}
@@ -40,15 +44,14 @@ export default function Tickets() {
 
     useEffect(() => {
         dispatch(fetchTickets())
+        dispatch(fetchAlerts())
         if (companies.length === 0) dispatch(fetchCompanies())
     }, [dispatch, companies.length])
 
-    // --- ASSOCIAÇÃO DIRETA POR ID ---
     const ticketsDaEmpresa = React.useMemo(() => {
         if (!tickets || tickets.length === 0) return []
         if (!companyId) return tickets
 
-        // Filtra os tickets comparando o company_id do banco com o ID da URL
         return tickets.filter(t => t.company_id === companyId)
     }, [tickets, companyId])
 
@@ -60,8 +63,6 @@ export default function Tickets() {
         }
     }, [ticketsDaEmpresa, setCounts])
 
-
-    //de observações
     const handleSaveObservation = (id, texto) => {
         dispatch(updateTicketObservation({ id, observacoes: texto }))
     }
@@ -84,15 +85,12 @@ export default function Tickets() {
             )
         })
 
-        // Ajuste de ordenação solicitado:
         return filtrados.sort((a, b) => {
             if (tabValue === 1) {
-                // Em finalizados, ordena pela data de fechamento (mais recentes primeiro)
                 const dataA = new Date(a.data_fechamento || a.data_abertura)
                 const dataB = new Date(b.data_fechamento || b.data_abertura)
                 return dataB - dataA
             } else {
-                // Em atendimento, mantém ordem original por abertura
                 const dataA = new Date(a.data_abertura)
                 const dataB = new Date(b.data_abertura)
                 return dataB - dataA
@@ -101,7 +99,6 @@ export default function Tickets() {
 
     }, [ticketsDaEmpresa, tabValue, searchTerm])
 
-    //Função para salvar o link associado
     const handleSaveLink = (id, novoLink) => {
         dispatch(updateTicketLink({ id, link: novoLink }))
     }
@@ -156,6 +153,7 @@ export default function Tickets() {
                 loading={loading}
                 tickets={tickets}
                 filteredTickets={filteredTickets}
+                alerts={monitoredStores}
                 tabValue={tabValue}
                 onViewDetails={handleViewDetails}
                 capitalizeName={capitalizeName}
